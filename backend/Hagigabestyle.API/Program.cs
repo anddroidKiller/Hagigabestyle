@@ -18,14 +18,7 @@ builder.Host.UseSerilog();
 
 // Database
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
-if (connectionString.Contains(".db"))
-{
-    builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(connectionString));
-}
-else
-{
-    builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
-}
+builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
 // JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"]!;

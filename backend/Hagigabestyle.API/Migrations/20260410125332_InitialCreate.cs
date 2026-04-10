@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -17,11 +18,11 @@ namespace Hagigabestyle.API.Migrations
                 name: "AdminUsers",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Username = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    PasswordHash = table.Column<string>(type: "TEXT", nullable: false),
-                    FullName = table.Column<string>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Username = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    PasswordHash = table.Column<string>(type: "text", nullable: false),
+                    FullName = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -32,13 +33,13 @@ namespace Hagigabestyle.API.Migrations
                 name: "Categories",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    NameHe = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    NameEn = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    ImageUrl = table.Column<string>(type: "TEXT", nullable: true),
-                    SortOrder = table.Column<int>(type: "INTEGER", nullable: false),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    NameHe = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    NameEn = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    ImageUrl = table.Column<string>(type: "text", nullable: true),
+                    SortOrder = table.Column<int>(type: "integer", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -49,18 +50,18 @@ namespace Hagigabestyle.API.Migrations
                 name: "Orders",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    CustomerName = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    CustomerPhone = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
-                    CustomerEmail = table.Column<string>(type: "TEXT", nullable: true),
-                    ShippingAddress = table.Column<string>(type: "TEXT", nullable: true),
-                    City = table.Column<string>(type: "TEXT", nullable: true),
-                    TotalAmount = table.Column<decimal>(type: "TEXT", precision: 10, scale: 2, nullable: false),
-                    Status = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
-                    TranzilaTransactionId = table.Column<string>(type: "TEXT", nullable: true),
-                    Notes = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    CustomerName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    CustomerPhone = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    CustomerEmail = table.Column<string>(type: "text", nullable: true),
+                    ShippingAddress = table.Column<string>(type: "text", nullable: true),
+                    City = table.Column<string>(type: "text", nullable: true),
+                    TotalAmount = table.Column<decimal>(type: "numeric(10,2)", precision: 10, scale: 2, nullable: false),
+                    Status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    TranzilaTransactionId = table.Column<string>(type: "text", nullable: true),
+                    Notes = table.Column<string>(type: "text", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -71,17 +72,17 @@ namespace Hagigabestyle.API.Migrations
                 name: "Packages",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    NameHe = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    NameEn = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    DescriptionHe = table.Column<string>(type: "TEXT", nullable: true),
-                    DescriptionEn = table.Column<string>(type: "TEXT", nullable: true),
-                    Price = table.Column<decimal>(type: "TEXT", precision: 10, scale: 2, nullable: false),
-                    OriginalPrice = table.Column<decimal>(type: "TEXT", precision: 10, scale: 2, nullable: false),
-                    ImageUrl = table.Column<string>(type: "TEXT", nullable: true),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    NameHe = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    NameEn = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    DescriptionHe = table.Column<string>(type: "text", nullable: true),
+                    DescriptionEn = table.Column<string>(type: "text", nullable: true),
+                    Price = table.Column<decimal>(type: "numeric(10,2)", precision: 10, scale: 2, nullable: false),
+                    OriginalPrice = table.Column<decimal>(type: "numeric(10,2)", precision: 10, scale: 2, nullable: false),
+                    ImageUrl = table.Column<string>(type: "text", nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -92,18 +93,18 @@ namespace Hagigabestyle.API.Migrations
                 name: "Products",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    NameHe = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    NameEn = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    DescriptionHe = table.Column<string>(type: "TEXT", nullable: true),
-                    DescriptionEn = table.Column<string>(type: "TEXT", nullable: true),
-                    Price = table.Column<decimal>(type: "TEXT", precision: 10, scale: 2, nullable: false),
-                    ImageUrl = table.Column<string>(type: "TEXT", nullable: true),
-                    CategoryId = table.Column<int>(type: "INTEGER", nullable: false),
-                    StockQuantity = table.Column<int>(type: "INTEGER", nullable: false),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    NameHe = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    NameEn = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    DescriptionHe = table.Column<string>(type: "text", nullable: true),
+                    DescriptionEn = table.Column<string>(type: "text", nullable: true),
+                    Price = table.Column<decimal>(type: "numeric(10,2)", precision: 10, scale: 2, nullable: false),
+                    ImageUrl = table.Column<string>(type: "text", nullable: true),
+                    CategoryId = table.Column<int>(type: "integer", nullable: false),
+                    StockQuantity = table.Column<int>(type: "integer", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -120,13 +121,13 @@ namespace Hagigabestyle.API.Migrations
                 name: "OrderItems",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    OrderId = table.Column<int>(type: "INTEGER", nullable: false),
-                    ProductId = table.Column<int>(type: "INTEGER", nullable: true),
-                    PackageId = table.Column<int>(type: "INTEGER", nullable: true),
-                    Quantity = table.Column<int>(type: "INTEGER", nullable: false),
-                    UnitPrice = table.Column<decimal>(type: "TEXT", precision: 10, scale: 2, nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    OrderId = table.Column<int>(type: "integer", nullable: false),
+                    ProductId = table.Column<int>(type: "integer", nullable: true),
+                    PackageId = table.Column<int>(type: "integer", nullable: true),
+                    Quantity = table.Column<int>(type: "integer", nullable: false),
+                    UnitPrice = table.Column<decimal>(type: "numeric(10,2)", precision: 10, scale: 2, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -153,11 +154,11 @@ namespace Hagigabestyle.API.Migrations
                 name: "PackageItems",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    PackageId = table.Column<int>(type: "INTEGER", nullable: false),
-                    ProductId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Quantity = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    PackageId = table.Column<int>(type: "integer", nullable: false),
+                    ProductId = table.Column<int>(type: "integer", nullable: false),
+                    Quantity = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
