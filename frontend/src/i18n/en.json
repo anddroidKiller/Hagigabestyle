@@ -1,0 +1,112 @@
+{
+  "common": {
+    "appName": "Hagiga BaStyle",
+    "home": "Home",
+    "categories": "Categories",
+    "products": "Products",
+    "packages": "Packages",
+    "cart": "Cart",
+    "checkout": "Checkout",
+    "search": "Search",
+    "login": "Login",
+    "logout": "Logout",
+    "admin": "Admin",
+    "language": "עברית",
+    "currency": "₪",
+    "addToCart": "Add to Cart",
+    "removeFromCart": "Remove",
+    "quantity": "Quantity",
+    "price": "Price",
+    "total": "Total",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "back": "Back",
+    "loading": "Loading...",
+    "noResults": "No results found",
+    "error": "An error occurred",
+    "success": "Operation completed successfully"
+  },
+  "home": {
+    "heroTitle": "Hagiga BaStyle",
+    "heroSubtitle": "Everything you need for the perfect event - disposable products, packages and party accessories",
+    "shopNow": "Shop Now",
+    "featuredCategories": "Featured Categories",
+    "popularPackages": "Popular Packages",
+    "viewAll": "View All"
+  },
+  "product": {
+    "details": "Product Details",
+    "inStock": "In Stock",
+    "outOfStock": "Out of Stock",
+    "category": "Category",
+    "relatedProducts": "Related Products"
+  },
+  "package": {
+    "includes": "Package Includes",
+    "originalPrice": "Original Price",
+    "discount": "Savings",
+    "items": "Items"
+  },
+  "cart": {
+    "title": "Your Cart",
+    "empty": "Your cart is empty",
+    "continueShopping": "Continue Shopping",
+    "proceedToCheckout": "Proceed to Checkout",
+    "subtotal": "Subtotal",
+    "clearCart": "Clear Cart"
+  },
+  "checkout": {
+    "title": "Order Details",
+    "customerName": "Full Name",
+    "customerPhone": "Phone",
+    "customerEmail": "Email",
+    "shippingAddress": "Shipping Address",
+    "city": "City",
+    "notes": "Notes",
+    "placeOrder": "Place Order",
+    "processing": "Processing...",
+    "required": "Required field"
+  },
+  "orderConfirmation": {
+    "title": "Order Received!",
+    "thankYou": "Thank you for your order",
+    "orderNumber": "Order Number",
+    "redirectingToPayment": "Redirecting to payment...",
+    "backToHome": "Back to Home"
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "totalOrders": "Total Orders",
+    "pendingOrders": "Pending Orders",
+    "totalRevenue": "Total Revenue",
+    "totalProducts": "Total Products",
+    "totalPackages": "Total Packages",
+    "recentOrders": "Recent Orders",
+    "manageProducts": "Manage Products",
+    "manageCategories": "Manage Categories",
+    "managePackages": "Manage Packages",
+    "manageOrders": "Manage Orders",
+    "addProduct": "Add Product",
+    "addCategory": "Add Category",
+    "addPackage": "Add Package",
+    "orderStatus": "Order Status",
+    "nameHe": "Name (Hebrew)",
+    "nameEn": "Name (English)",
+    "descriptionHe": "Description (Hebrew)",
+    "descriptionEn": "Description (English)",
+    "imageUrl": "Image URL",
+    "active": "Active",
+    "inactive": "Inactive",
+    "status": {
+      "Pending": "Pending",
+      "Paid": "Paid",
+      "Processing": "Processing",
+      "Shipped": "Shipped",
+      "Delivered": "Delivered",
+      "Cancelled": "Cancelled"
+    }
+  }
+}

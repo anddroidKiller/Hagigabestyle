@@ -1,0 +1,6 @@
+@Hagigabestyle.API_HostAddress = http://localhost:5237
+
+GET {{Hagigabestyle.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

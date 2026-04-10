@@ -1,0 +1,112 @@
+{
+  "common": {
+    "appName": "חגיגה בסטייל",
+    "home": "דף הבית",
+    "categories": "קטגוריות",
+    "products": "מוצרים",
+    "packages": "מארזים",
+    "cart": "עגלת קניות",
+    "checkout": "תשלום",
+    "search": "חיפוש",
+    "login": "התחברות",
+    "logout": "התנתקות",
+    "admin": "ניהול",
+    "language": "English",
+    "currency": "₪",
+    "addToCart": "הוסף לעגלה",
+    "removeFromCart": "הסר מהעגלה",
+    "quantity": "כמות",
+    "price": "מחיר",
+    "total": "סה\"כ",
+    "save": "שמור",
+    "cancel": "ביטול",
+    "delete": "מחק",
+    "edit": "ערוך",
+    "create": "צור",
+    "back": "חזור",
+    "loading": "טוען...",
+    "noResults": "לא נמצאו תוצאות",
+    "error": "אירעה שגיאה",
+    "success": "הפעולה בוצעה בהצלחה"
+  },
+  "home": {
+    "heroTitle": "חגיגה בסטייל",
+    "heroSubtitle": "כל מה שצריך לאירוע מושלם - מוצרים חד פעמיים, מארזים ואביזרים למסיבה",
+    "shopNow": "לקניות",
+    "featuredCategories": "קטגוריות מובילות",
+    "popularPackages": "מארזים פופולריים",
+    "viewAll": "צפה בהכל"
+  },
+  "product": {
+    "details": "פרטי מוצר",
+    "inStock": "במלאי",
+    "outOfStock": "אזל מהמלאי",
+    "category": "קטגוריה",
+    "relatedProducts": "מוצרים דומים"
+  },
+  "package": {
+    "includes": "המארז כולל",
+    "originalPrice": "מחיר מקורי",
+    "discount": "חיסכון",
+    "items": "פריטים"
+  },
+  "cart": {
+    "title": "עגלת הקניות שלך",
+    "empty": "העגלה ריקה",
+    "continueShopping": "המשך קניות",
+    "proceedToCheckout": "המשך לתשלום",
+    "subtotal": "סיכום ביניים",
+    "clearCart": "נקה עגלה"
+  },
+  "checkout": {
+    "title": "פרטי הזמנה",
+    "customerName": "שם מלא",
+    "customerPhone": "טלפון",
+    "customerEmail": "אימייל",
+    "shippingAddress": "כתובת למשלוח",
+    "city": "עיר",
+    "notes": "הערות",
+    "placeOrder": "בצע הזמנה",
+    "processing": "מעבד...",
+    "required": "שדה חובה"
+  },
+  "orderConfirmation": {
+    "title": "ההזמנה התקבלה!",
+    "thankYou": "תודה על הזמנתך",
+    "orderNumber": "מספר הזמנה",
+    "redirectingToPayment": "מעביר לדף התשלום...",
+    "backToHome": "חזרה לדף הבית"
+  },
+  "admin": {
+    "dashboard": "לוח בקרה",
+    "totalOrders": "סה\"כ הזמנות",
+    "pendingOrders": "הזמנות ממתינות",
+    "totalRevenue": "סה\"כ הכנסות",
+    "totalProducts": "סה\"כ מוצרים",
+    "totalPackages": "סה\"כ מארזים",
+    "recentOrders": "הזמנות אחרונות",
+    "manageProducts": "ניהול מוצרים",
+    "manageCategories": "ניהול קטגוריות",
+    "managePackages": "ניהול מארזים",
+    "manageOrders": "ניהול הזמנות",
+    "addProduct": "הוסף מוצר",
+    "addCategory": "הוסף קטגוריה",
+    "addPackage": "הוסף מארז",
+    "orderStatus": "סטטוס הזמנה",
+    "nameHe": "שם בעברית",
+    "nameEn": "שם באנגלית",
+    "descriptionHe": "תיאור בעברית",
+    "descriptionEn": "תיאור באנגלית",
+    "imageUrl": "כתובת תמונה",
+    "active": "פעיל",
+    "inactive": "לא פעיל",
+    "status": {
+      "Pending": "ממתין",
+      "Paid": "שולם",
+      "Processing": "בטיפול",
+      "Shipped": "נשלח",
+      "Delivered": "נמסר",
+      "Cancelled": "בוטל"
+    }
+  }
+}
