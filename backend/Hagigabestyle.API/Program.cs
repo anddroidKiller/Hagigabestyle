@@ -27,23 +27,32 @@ Log.Information("DATABASE_PRIVATE_URL set: {Set}", !string.IsNullOrEmpty(Environ
 Log.Information("DATABASE_URL set: {Set}", !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DATABASE_URL")));
 Log.Information("PGHOST set: {Set}", !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PGHOST")));
 
-if (!string.IsNullOrEmpty(databaseUrl) && databaseUrl.StartsWith("postgresql://"))
+if (!string.IsNullOrEmpty(databaseUrl) &&
+    (databaseUrl.StartsWith("postgresql://") || databaseUrl.StartsWith("postgres://")))
 {
-    var uri = new Uri(databaseUrl);
+    // Normalise the scheme so System.Uri always parses it correctly.
+    var normalised = databaseUrl.StartsWith("postgres://")
+        ? "postgresql://" + databaseUrl["postgres://".Length..]
+        : databaseUrl;
+    var uri = new Uri(normalised);
     var userInfo = uri.UserInfo.Split(':');
-    connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+    var password = Uri.UnescapeDataString(userInfo.Length > 1 ? userInfo[1] : "");
+    var username = Uri.UnescapeDataString(userInfo[0]);
+    connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
+    Log.Information("Using DATABASE_URL connection (scheme: {Scheme}, host: {Host})", uri.Scheme, uri.Host);
 }
 else
 {
-    // Use individual PG* env vars; default PGHOST to the Railway private DNS
-    // name so the app connects to the Postgres service even when the variable
-    // is not explicitly set.
+    // Fall back to individual PG* env vars; default PGHOST to the Railway
+    // private DNS name so the app connects to the Postgres service even when
+    // the variable is not explicitly set.
     var pgHost = Environment.GetEnvironmentVariable("PGHOST") ?? "postgres.railway.internal";
     var pgPort = Environment.GetEnvironmentVariable("PGPORT") ?? "5432";
     var pgUser = Environment.GetEnvironmentVariable("PGUSER") ?? "postgres";
     var pgPass = Environment.GetEnvironmentVariable("PGPASSWORD") ?? "";
     var pgDb   = Environment.GetEnvironmentVariable("PGDATABASE") ?? "railway";
     connectionString = $"Host={pgHost};Port={pgPort};Database={pgDb};Username={pgUser};Password={pgPass};SSL Mode=Require;Trust Server Certificate=true";
+    Log.Warning("DATABASE_URL not available or unrecognised scheme — falling back to PG* variables (PGHOST={Host})", pgHost);
 }
 Log.Information("Connecting to database at: {Host}", connectionString.Contains("Host=") ? connectionString.Split("Host=")[1].Split(';')[0] : "unknown");
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
