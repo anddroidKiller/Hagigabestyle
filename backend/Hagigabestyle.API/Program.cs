@@ -16,13 +16,31 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-// Database - hardcoded connection string targeting the Railway Postgres service
-// via its private DNS name. Reference variables (${{ ... }}) are not resolving
-// in this environment, so credentials are set directly as a temporary workaround
-// until the actual values can be confirmed and reference variables are fixed.
-var connectionString = "Host=postgres.railway.internal;Port=5432;Database=railway;Username=postgres;Password=postgres;SSL Mode=Require;Trust Server Certificate=true";
+// Database - prefer DATABASE_URL injected by Railway (contains the correct
+// randomly-generated password). Fall back to the private DNS name if the
+// variable is not present (e.g. local development).
+string connectionString;
 
-Log.Information("Connecting to database at: postgres.railway.internal:5432");
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+if (!string.IsNullOrEmpty(databaseUrl))
+{
+    // DATABASE_URL format: postgresql://username:password@host:port/database
+    var uri = new Uri(databaseUrl);
+    var userInfo = uri.UserInfo.Split(':', 2);
+    var username = userInfo[0];
+    var password = userInfo.Length > 1 ? userInfo[1] : string.Empty;
+    var host = uri.Host;
+    var port = uri.Port > 0 ? uri.Port : 5432;
+    var database = uri.AbsolutePath.TrimStart('/');
+
+    connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
+    Log.Information("Connecting to database via DATABASE_URL at: {Host}:{Port}", host, port);
+}
+else
+{
+    connectionString = "Host=postgres.railway.internal;Port=5432;Database=railway;Username=postgres;Password=postgres;SSL Mode=Require;Trust Server Certificate=true";
+    Log.Information("Connecting to database at: postgres.railway.internal:5432 (fallback)");
+}
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
 // JWT Authentication
