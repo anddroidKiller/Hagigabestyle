@@ -54,11 +54,11 @@ export default function ProductCard({ product }: Props) {
       </CardMedia>
 
       <CardContent sx={{ flexGrow: 1, pb: 1 }}>
-        <Typography variant="subtitle1" fontWeight={600} noWrap>
+        <Typography variant="subtitle1" noWrap sx={{ fontWeight: 600 }}>
           {getName(product)}
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-          <Typography variant="h6" color="primary" fontWeight={700}>
+          <Typography variant="h6" color="primary" sx={{ fontWeight: 700 }}>
             ₪{product.price.toFixed(2)}
           </Typography>
         </Box>

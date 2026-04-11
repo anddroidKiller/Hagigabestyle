@@ -69,7 +69,7 @@ export default function AdminProductsPage() {
   return (
     <>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" fontWeight={700}>
+        <Typography variant="h4" sx={{ fontWeight: 700 }}>
           {t('admin.manageProducts')}
         </Typography>
         <Button variant="contained" startIcon={<AddIcon />} onClick={openCreate}>

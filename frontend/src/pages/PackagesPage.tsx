@@ -23,7 +23,7 @@ export default function PackagesPage() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h4" fontWeight={700} sx={{ mb: 4 }}>
+      <Typography variant="h4" sx={{ mb: 4, fontWeight: 700 }}>
         {t('common.packages')}
       </Typography>
 

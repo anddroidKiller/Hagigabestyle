@@ -47,7 +47,7 @@ export default function CategoryPage() {
         <Typography color="text.primary">{category && getName(category)}</Typography>
       </Breadcrumbs>
 
-      <Typography variant="h4" fontWeight={700} sx={{ mb: 4 }}>
+      <Typography variant="h4" sx={{ mb: 4, fontWeight: 700 }}>
         {category && getName(category)}
       </Typography>
 

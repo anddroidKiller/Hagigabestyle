@@ -62,7 +62,7 @@ export default function AdminPackagesPage() {
   return (
     <>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" fontWeight={700}>{t('admin.managePackages')}</Typography>
+        <Typography variant="h4" sx={{ fontWeight: 700 }}>{t('admin.managePackages')}</Typography>
         <Button variant="contained" startIcon={<AddIcon />} onClick={openCreate}>{t('admin.addPackage')}</Button>
       </Box>
 

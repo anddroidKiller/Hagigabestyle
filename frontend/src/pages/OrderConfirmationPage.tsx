@@ -44,7 +44,7 @@ export default function OrderConfirmationPage() {
     <Container maxWidth="sm" sx={{ py: 8, textAlign: 'center' }}>
       <CheckCircleIcon sx={{ fontSize: 80, color: 'success.main' }} />
 
-      <Typography variant="h4" fontWeight={700} sx={{ mt: 2 }}>
+      <Typography variant="h4" sx={{ mt: 2, fontWeight: 700 }}>
         {t('orderConfirmation.title')}
       </Typography>
 
@@ -57,7 +57,7 @@ export default function OrderConfirmationPage() {
           {t('orderConfirmation.orderNumber')}: <strong>#{id}</strong>
         </Typography>
         {order && (
-          <Typography variant="h5" color="primary" fontWeight={700} sx={{ mt: 1 }}>
+          <Typography variant="h5" color="primary" sx={{ mt: 1, fontWeight: 700 }}>
             ₪{order.totalAmount.toFixed(2)}
           </Typography>
         )}

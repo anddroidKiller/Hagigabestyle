@@ -33,7 +33,7 @@ export default function AdminLoginPage() {
   return (
     <Container maxWidth="xs" sx={{ py: 10 }}>
       <Paper sx={{ p: 4, borderRadius: 3 }}>
-        <Typography variant="h5" fontWeight={700} align="center" sx={{ mb: 3 }}>
+        <Typography variant="h5" align="center" sx={{ mb: 3, fontWeight: 700 }}>
           {t('common.admin')} - {t('common.login')}
         </Typography>
 

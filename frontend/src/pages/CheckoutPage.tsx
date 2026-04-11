@@ -68,7 +68,7 @@ export default function CheckoutPage() {
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
-      <Typography variant="h4" fontWeight={700} sx={{ mb: 4 }}>
+      <Typography variant="h4" sx={{ mb: 4, fontWeight: 700 }}>
         {t('checkout.title')}
       </Typography>
 
@@ -136,7 +136,7 @@ export default function CheckoutPage() {
 
         <Grid size={{ xs: 12, md: 5 }}>
           <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="h6" fontWeight={600} sx={{ mb: 2 }}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
               {t('cart.subtotal')}
             </Typography>
             {items.map((item) => (
@@ -144,17 +144,17 @@ export default function CheckoutPage() {
                 <Typography variant="body2">
                   {item.nameHe} x{item.quantity}
                 </Typography>
-                <Typography variant="body2" fontWeight={600}>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
                   ₪{(item.price * item.quantity).toFixed(2)}
                 </Typography>
               </Box>
             ))}
             <Divider sx={{ my: 2 }} />
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="h6" fontWeight={700}>
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>
                 {t('common.total')}:
               </Typography>
-              <Typography variant="h6" color="primary" fontWeight={700}>
+              <Typography variant="h6" color="primary" sx={{ fontWeight: 700 }}>
                 ₪{totalPrice().toFixed(2)}
               </Typography>
             </Box>

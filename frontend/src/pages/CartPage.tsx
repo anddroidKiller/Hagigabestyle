@@ -37,7 +37,7 @@ export default function CartPage() {
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
-      <Typography variant="h4" fontWeight={700} sx={{ mb: 4 }}>
+      <Typography variant="h4" sx={{ mb: 4, fontWeight: 700 }}>
         {t('cart.title')}
       </Typography>
 
@@ -71,10 +71,10 @@ export default function CartPage() {
               </Box>
 
               <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-                <Typography fontWeight={600} noWrap>
+                <Typography noWrap sx={{ fontWeight: 600 }}>
                   {getName(item)}
                 </Typography>
-                <Typography variant="body2" color="primary" fontWeight={600}>
+                <Typography variant="body2" color="primary" sx={{ fontWeight: 600 }}>
                   ₪{item.price.toFixed(2)}
                 </Typography>
               </Box>
@@ -97,7 +97,7 @@ export default function CartPage() {
                 </IconButton>
               </Box>
 
-              <Typography fontWeight={700} sx={{ minWidth: 80, textAlign: 'end' }}>
+              <Typography sx={{ minWidth: 80, textAlign: 'end', fontWeight: 700 }}>
                 ₪{(item.price * item.quantity).toFixed(2)}
               </Typography>
 
@@ -112,10 +112,10 @@ export default function CartPage() {
         <Divider sx={{ my: 2 }} />
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h5" fontWeight={700}>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
             {t('cart.subtotal')}:
           </Typography>
-          <Typography variant="h5" color="primary" fontWeight={700}>
+          <Typography variant="h5" color="primary" sx={{ fontWeight: 700 }}>
             ₪{totalPrice().toFixed(2)}
           </Typography>
         </Box>

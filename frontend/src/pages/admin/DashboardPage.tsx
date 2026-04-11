@@ -44,7 +44,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <Typography variant="h4" fontWeight={700} sx={{ mb: 4 }}>
+      <Typography variant="h4" sx={{ mb: 4, fontWeight: 700 }}>
         {t('admin.dashboard')}
       </Typography>
 
@@ -59,7 +59,7 @@ export default function DashboardPage() {
                 textAlign: 'center',
               }}
             >
-              <Typography variant="h4" fontWeight={700}>
+              <Typography variant="h4" sx={{ fontWeight: 700 }}>
                 {stat.value}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
@@ -70,7 +70,7 @@ export default function DashboardPage() {
         ))}
       </Grid>
 
-      <Typography variant="h6" fontWeight={600} sx={{ mb: 2 }}>
+      <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
         {t('admin.recentOrders')}
       </Typography>
 

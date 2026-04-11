@@ -38,7 +38,7 @@ export default function AdminLayout() {
 
   const drawerContent = (
     <Box sx={{ pt: 2 }}>
-      <Typography variant="h6" color="primary" fontWeight={700} sx={{ px: 2, mb: 2 }}>
+      <Typography variant="h6" color="primary" sx={{ px: 2, mb: 2, fontWeight: 700 }}>
         {t('common.admin')}
       </Typography>
       <List>

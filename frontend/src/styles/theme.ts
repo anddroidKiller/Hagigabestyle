@@ -37,13 +37,11 @@ export const getTheme = (direction: 'rtl' | 'ltr') =>
       MuiButton: {
         styleOverrides: {
           root: {
-            textTransform: 'none',
+            textTransform: 'none' as const,
             fontWeight: 600,
             borderRadius: 8,
             padding: '10px 24px',
-          },
-          containedPrimary: {
-            '&:hover': {
+            '&.MuiButton-containedPrimary:hover': {
               backgroundColor: '#a17d3f',
             },
           },

@@ -44,7 +44,7 @@ export default function AdminOrdersPage() {
 
   return (
     <>
-      <Typography variant="h4" fontWeight={700} sx={{ mb: 3 }}>
+      <Typography variant="h4" sx={{ mb: 3, fontWeight: 700 }}>
         {t('admin.manageOrders')}
       </Typography>
 

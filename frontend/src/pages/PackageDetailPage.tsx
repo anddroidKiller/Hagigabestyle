@@ -87,7 +87,7 @@ export default function PackageDetailPage() {
         </Grid>
 
         <Grid size={{ xs: 12, md: 6 }}>
-          <Typography variant="h4" fontWeight={700}>
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>
             {getName(pkg)}
           </Typography>
 
@@ -101,7 +101,7 @@ export default function PackageDetailPage() {
           )}
 
           <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 2, mt: 3 }}>
-            <Typography variant="h3" color="primary" fontWeight={700}>
+            <Typography variant="h3" color="primary" sx={{ fontWeight: 700 }}>
               ₪{pkg.price.toFixed(2)}
             </Typography>
             {pkg.originalPrice > pkg.price && (
@@ -117,7 +117,7 @@ export default function PackageDetailPage() {
             </Typography>
           )}
 
-          <Typography variant="h6" fontWeight={600} sx={{ mt: 4, mb: 1 }}>
+          <Typography variant="h6" sx={{ mt: 4, mb: 1, fontWeight: 600 }}>
             {t('package.includes')}:
           </Typography>
           <List dense>

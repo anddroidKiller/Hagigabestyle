@@ -95,7 +95,7 @@ export default function HomePage() {
         {/* Featured Categories */}
         <Box sx={{ mb: 8 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h4" fontWeight={700}>
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>
               {t('home.featuredCategories')}
             </Typography>
             <Button component={Link} to="/categories" endIcon={<ArrowIcon />}>
@@ -132,7 +132,7 @@ export default function HomePage() {
                     )}
                   </CardMedia>
                   <CardContent>
-                    <Typography variant="subtitle1" fontWeight={600}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                       {getName(cat)}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
@@ -149,7 +149,7 @@ export default function HomePage() {
         {packages.length > 0 && (
           <Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h4" fontWeight={700}>
+              <Typography variant="h4" sx={{ fontWeight: 700 }}>
                 {t('home.popularPackages')}
               </Typography>
               <Button component={Link} to="/packages" endIcon={<ArrowIcon />}>

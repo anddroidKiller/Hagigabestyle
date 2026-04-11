@@ -95,7 +95,7 @@ export default function Layout() {
       >
         <Box sx={{ width: 280, pt: 1 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, py: 1 }}>
-            <Typography variant="h6" color="primary" fontWeight={700}>
+            <Typography variant="h6" color="primary" sx={{ fontWeight: 700 }}>
               {t('common.appName')}
             </Typography>
             <IconButton onClick={() => setDrawerOpen(false)}>
@@ -145,7 +145,7 @@ export default function Layout() {
           onClick={() => navigate('/cart')}
         >
           <ShoppingCartIcon />
-          <Typography fontWeight={600}>
+          <Typography sx={{ fontWeight: 600 }}>
             {t('common.cart')} ({totalItems}) - ₪{useCartStore.getState().totalPrice().toFixed(2)}
           </Typography>
         </Box>

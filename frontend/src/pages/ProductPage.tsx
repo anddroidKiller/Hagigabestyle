@@ -94,7 +94,7 @@ export default function ProductPage() {
         </Grid>
 
         <Grid size={{ xs: 12, md: 6 }}>
-          <Typography variant="h4" fontWeight={700}>
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>
             {getName(product)}
           </Typography>
 
@@ -105,7 +105,7 @@ export default function ProductPage() {
             sx={{ mt: 1 }}
           />
 
-          <Typography variant="h3" color="primary" fontWeight={700} sx={{ mt: 3 }}>
+          <Typography variant="h3" color="primary" sx={{ mt: 3, fontWeight: 700 }}>
             ₪{product.price.toFixed(2)}
           </Typography>
 

@@ -72,11 +72,11 @@ export default function PackageCard({ pkg }: Props) {
       </CardMedia>
 
       <CardContent sx={{ flexGrow: 1, pb: 1 }}>
-        <Typography variant="h6" fontWeight={700}>
+        <Typography variant="h6" sx={{ fontWeight: 700 }}>
           {getName(pkg)}
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-          <Typography variant="h5" color="primary" fontWeight={700}>
+          <Typography variant="h5" color="primary" sx={{ fontWeight: 700 }}>
             ₪{pkg.price.toFixed(2)}
           </Typography>
           {pkg.originalPrice > pkg.price && (

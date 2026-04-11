@@ -27,7 +27,7 @@ export default function CategoriesPage() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h4" fontWeight={700} sx={{ mb: 4 }}>
+      <Typography variant="h4" sx={{ mb: 4, fontWeight: 700 }}>
         {t('common.categories')}
       </Typography>
 
@@ -56,7 +56,7 @@ export default function CategoriesPage() {
                 )}
               </CardMedia>
               <CardContent>
-                <Typography variant="h6" fontWeight={600}>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
                   {getName(cat)}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
