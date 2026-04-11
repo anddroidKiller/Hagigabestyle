@@ -16,25 +16,41 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
+// Dump all Railway/DB env vars for diagnostics
+Log.Information("=== Railway / Database environment variable dump ===");
+var prefixesToLog = new[] { "DATABASE", "POSTGRES", "PG", "RAILWAY" };
+var envVars = System.Environment.GetEnvironmentVariables();
+var matchedAny = false;
+foreach (System.Collections.DictionaryEntry entry in envVars)
+{
+    var key = entry.Key?.ToString() ?? string.Empty;
+    if (Array.Exists(prefixesToLog, p => key.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
+    {
+        Log.Information("  {Key} = {Value}", key, entry.Value?.ToString() ?? "(null)");
+        matchedAny = true;
+    }
+}
+if (!matchedAny)
+    Log.Warning("  (no matching environment variables found)");
+Log.Information("=== End environment variable dump ===");
+
 // Database - prefer DATABASE_URL (public) over DATABASE_PRIVATE_URL (internal)
 var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL")
     ?? Environment.GetEnvironmentVariable("DATABASE_PRIVATE_URL");
 string connectionString;
 
-Log.Information("DATABASE_URL = {Url}", Environment.GetEnvironmentVariable("DATABASE_URL") ?? "(not set)");
-Log.Information("DATABASE_PRIVATE_URL = {Url}", Environment.GetEnvironmentVariable("DATABASE_PRIVATE_URL") ?? "(not set)");
-
 if (!string.IsNullOrEmpty(databaseUrl) && databaseUrl.StartsWith("postgresql://"))
 {
     var uri = new Uri(databaseUrl);
-    var userInfo = uri.UserInfo.Split(':');
-    connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+    var userInfo = uri.UserInfo.Split(':', 2);
+    connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={(userInfo.Length > 1 ? userInfo[1] : "")};SSL Mode=Require;Trust Server Certificate=true";
+    Log.Information("Using DATABASE_URL -> Host={Host}", uri.Host);
 }
 else
 {
     connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
+    Log.Warning("No DATABASE_URL found, falling back to appsettings (localhost)");
 }
-Log.Information("Connecting to database at: {Host}", connectionString.Contains("Host=") ? connectionString.Split("Host=")[1].Split(';')[0] : "localhost (fallback)");
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
 // JWT Authentication
