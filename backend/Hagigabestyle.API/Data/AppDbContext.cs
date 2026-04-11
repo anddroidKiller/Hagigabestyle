@@ -93,7 +93,7 @@ public class AppDbContext : DbContext
 
     private static void SeedData(ModelBuilder modelBuilder)
     {
-        const string img = "http://localhost:5173/images";
+        const string img = "/images";
 
         modelBuilder.Entity<Category>().HasData(
             new Category { Id = 1, NameHe = "צלחות וכוסות", NameEn = "Plates & Cups", ImageUrl = $"{img}/cat-plates-cups.jpg", SortOrder = 1, IsActive = true },

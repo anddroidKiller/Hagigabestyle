@@ -16,8 +16,18 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-// Database
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
+// Database - support Railway's DATABASE_URL or fallback to appsettings
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+if (!string.IsNullOrEmpty(connectionString) && connectionString.StartsWith("postgresql://"))
+{
+    var uri = new Uri(connectionString);
+    var userInfo = uri.UserInfo.Split(':');
+    connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+}
+else
+{
+    connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
+}
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
 // JWT Authentication
@@ -60,6 +70,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
+              .SetIsOriginAllowed(_ => true)
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -69,8 +80,7 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Auto-migrate and seed on startup in development
-if (app.Environment.IsDevelopment())
+// Auto-migrate and seed on startup
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -87,7 +97,8 @@ if (app.Environment.IsDevelopment())
         db.SaveChanges();
     }
 
-    app.MapOpenApi();
+    if (app.Environment.IsDevelopment())
+        app.MapOpenApi();
 }
 
 app.UseMiddleware<ExceptionMiddleware>();
@@ -96,4 +107,10 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-app.Run();
+// Serve frontend static files (built React app in wwwroot)
+app.UseDefaultFiles();
+app.UseStaticFiles();
+app.MapFallbackToFile("index.html");
+
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+app.Run($"http://0.0.0.0:{port}");
