@@ -16,6 +16,27 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
+// --- Railway environment variable diagnostics ---
+// Log every env var whose name starts with DATABASE, POSTGRES, PG, or RAILWAY
+// so we can see exactly what Railway is injecting at runtime.
+Log.Information("=== Railway / Database environment variable dump ===");
+var prefixesToLog = new[] { "DATABASE", "POSTGRES", "PG", "RAILWAY" };
+var envVars = System.Environment.GetEnvironmentVariables();
+var matchedAny = false;
+foreach (System.Collections.DictionaryEntry entry in envVars)
+{
+    var key = entry.Key?.ToString() ?? string.Empty;
+    if (Array.Exists(prefixesToLog, p => key.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
+    {
+        Log.Information("  {Key} = {Value}", key, entry.Value?.ToString() ?? "(null)");
+        matchedAny = true;
+    }
+}
+if (!matchedAny)
+    Log.Warning("  (no matching environment variables found — DATABASE_URL / RAILWAY_* are not set)");
+Log.Information("=== End environment variable dump ===");
+// -------------------------------------------------
+
 // Database - prefer DATABASE_URL injected by Railway (contains the correct
 // randomly-generated password). Fall back to the private DNS name if the
 // variable is not present (e.g. local development).
