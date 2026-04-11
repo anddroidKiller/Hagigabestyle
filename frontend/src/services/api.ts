@@ -32,6 +32,7 @@ export interface ProductDto {
   descriptionHe?: string;
   descriptionEn?: string;
   price: number;
+  barcode?: string;
   imageUrl?: string;
   categoryId: number;
   categoryNameHe: string;

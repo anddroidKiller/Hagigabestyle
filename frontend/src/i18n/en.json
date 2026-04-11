@@ -42,6 +42,7 @@
     "inStock": "In Stock",
     "outOfStock": "Out of Stock",
     "category": "Category",
+    "barcode": "Barcode",
     "relatedProducts": "Related Products"
   },
   "package": {

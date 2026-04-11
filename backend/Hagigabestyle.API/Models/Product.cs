@@ -8,6 +8,7 @@ public class Product
     public string? DescriptionHe { get; set; }
     public string? DescriptionEn { get; set; }
     public decimal Price { get; set; }
+    public string? Barcode { get; set; }
     public string? ImageUrl { get; set; }
     public int CategoryId { get; set; }
     public int StockQuantity { get; set; }

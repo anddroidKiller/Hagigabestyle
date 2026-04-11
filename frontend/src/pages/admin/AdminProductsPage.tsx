@@ -19,7 +19,7 @@ export default function AdminProductsPage() {
   const [editing, setEditing] = useState<ProductDto | null>(null);
   const [form, setForm] = useState({
     nameHe: '', nameEn: '', descriptionHe: '', descriptionEn: '',
-    price: 0, imageUrl: '', categoryId: 0, stockQuantity: 0, isActive: true,
+    price: 0, barcode: '', imageUrl: '', categoryId: 0, stockQuantity: 0, isActive: true,
   });
 
   const loadData = () => {
@@ -33,7 +33,7 @@ export default function AdminProductsPage() {
     setEditing(null);
     setForm({
       nameHe: '', nameEn: '', descriptionHe: '', descriptionEn: '',
-      price: 0, imageUrl: '', categoryId: categories[0]?.id || 0, stockQuantity: 0, isActive: true,
+      price: 0, barcode: '', imageUrl: '', categoryId: categories[0]?.id || 0, stockQuantity: 0, isActive: true,
     });
     setDialogOpen(true);
   };
@@ -43,7 +43,7 @@ export default function AdminProductsPage() {
     setForm({
       nameHe: p.nameHe, nameEn: p.nameEn,
       descriptionHe: p.descriptionHe || '', descriptionEn: p.descriptionEn || '',
-      price: p.price, imageUrl: p.imageUrl || '',
+      price: p.price, barcode: p.barcode || '', imageUrl: p.imageUrl || '',
       categoryId: p.categoryId, stockQuantity: p.stockQuantity, isActive: p.isActive,
     });
     setDialogOpen(true);
@@ -85,6 +85,7 @@ export default function AdminProductsPage() {
               <TableCell>{t('admin.nameHe')}</TableCell>
               <TableCell>{t('admin.nameEn')}</TableCell>
               <TableCell>{t('common.price')}</TableCell>
+              <TableCell>{t('product.barcode')}</TableCell>
               <TableCell>{t('product.category')}</TableCell>
               <TableCell>{t('common.quantity')}</TableCell>
               <TableCell>{t('admin.active')}</TableCell>
@@ -98,6 +99,7 @@ export default function AdminProductsPage() {
                 <TableCell>{p.nameHe}</TableCell>
                 <TableCell>{p.nameEn}</TableCell>
                 <TableCell>₪{p.price.toFixed(2)}</TableCell>
+                <TableCell>{p.barcode || '—'}</TableCell>
                 <TableCell>{p.categoryNameHe}</TableCell>
                 <TableCell>{p.stockQuantity}</TableCell>
                 <TableCell>
@@ -126,6 +128,7 @@ export default function AdminProductsPage() {
             <TextField label={t('admin.descriptionHe')} fullWidth multiline rows={2} value={form.descriptionHe} onChange={e => setForm({ ...form, descriptionHe: e.target.value })} />
             <TextField label={t('admin.descriptionEn')} fullWidth multiline rows={2} value={form.descriptionEn} onChange={e => setForm({ ...form, descriptionEn: e.target.value })} />
             <TextField label={t('common.price')} type="number" fullWidth value={form.price} onChange={e => setForm({ ...form, price: +e.target.value })} />
+            <TextField label={t('product.barcode')} fullWidth value={form.barcode} onChange={e => setForm({ ...form, barcode: e.target.value })} placeholder="e.g. 7290000000001" />
             <TextField label={t('admin.imageUrl')} fullWidth value={form.imageUrl} onChange={e => setForm({ ...form, imageUrl: e.target.value })} />
             <TextField
               select label={t('product.category')} fullWidth value={form.categoryId}

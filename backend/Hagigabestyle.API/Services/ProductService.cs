@@ -41,6 +41,7 @@ public class ProductService
             DescriptionHe = dto.DescriptionHe,
             DescriptionEn = dto.DescriptionEn,
             Price = dto.Price,
+            Barcode = dto.Barcode,
             ImageUrl = dto.ImageUrl,
             CategoryId = dto.CategoryId,
             StockQuantity = dto.StockQuantity,
@@ -65,6 +66,7 @@ public class ProductService
         product.DescriptionHe = dto.DescriptionHe;
         product.DescriptionEn = dto.DescriptionEn;
         product.Price = dto.Price;
+        product.Barcode = dto.Barcode;
         product.ImageUrl = dto.ImageUrl;
         product.CategoryId = dto.CategoryId;
         product.StockQuantity = dto.StockQuantity;
@@ -93,6 +95,7 @@ public class ProductService
         DescriptionHe = p.DescriptionHe,
         DescriptionEn = p.DescriptionEn,
         Price = p.Price,
+        Barcode = p.Barcode,
         ImageUrl = p.ImageUrl,
         CategoryId = p.CategoryId,
         CategoryNameHe = p.Category.NameHe,

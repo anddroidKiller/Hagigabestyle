@@ -42,6 +42,7 @@
     "inStock": "במלאי",
     "outOfStock": "אזל מהמלאי",
     "category": "קטגוריה",
+    "barcode": "ברקוד",
     "relatedProducts": "מוצרים דומים"
   },
   "package": {
