@@ -37,31 +37,20 @@ if (!matchedAny)
 Log.Information("=== End environment variable dump ===");
 // -------------------------------------------------
 
-// Database - prefer DATABASE_URL injected by Railway (contains the correct
-// randomly-generated password). Fall back to the private DNS name if the
-// variable is not present (e.g. local development).
-string connectionString;
+// Database - use hardcoded connection string directly (DATABASE_URL injection
+// is unreliable in this Railway environment, so we parse the known URL instead).
+const string hardcodedDatabaseUrl = "postgresql://postgres:railway123@postgres.railway.internal:5432/railway";
 
-var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
-if (!string.IsNullOrEmpty(databaseUrl))
-{
-    // DATABASE_URL format: postgresql://username:password@host:port/database
-    var uri = new Uri(databaseUrl);
-    var userInfo = uri.UserInfo.Split(':', 2);
-    var username = userInfo[0];
-    var password = userInfo.Length > 1 ? userInfo[1] : string.Empty;
-    var host = uri.Host;
-    var dbPort = uri.Port > 0 ? uri.Port : 5432;
-    var database = uri.AbsolutePath.TrimStart('/');
+var uri = new Uri(hardcodedDatabaseUrl);
+var userInfo = uri.UserInfo.Split(':', 2);
+var username = userInfo[0];
+var password = userInfo.Length > 1 ? userInfo[1] : string.Empty;
+var host = uri.Host;
+var dbPort = uri.Port > 0 ? uri.Port : 5432;
+var database = uri.AbsolutePath.TrimStart('/');
 
-    connectionString = $"Host={host};Port={dbPort};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
-    Log.Information("Connecting to database via DATABASE_URL at: {Host}:{Port}", host, dbPort);
-}
-else
-{
-    connectionString = "Host=postgres.railway.internal;Port=5432;Database=railway;Username=postgres;Password=postgres;SSL Mode=Require;Trust Server Certificate=true";
-    Log.Information("Connecting to database at: postgres.railway.internal:5432 (fallback)");
-}
+var connectionString = $"Host={host};Port={dbPort};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
+Log.Information("Connecting to database (hardcoded) at: {Host}:{Port}/{Database} as {Username}", host, dbPort, database, username);
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
 // JWT Authentication
