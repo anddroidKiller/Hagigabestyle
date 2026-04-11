@@ -16,21 +16,35 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-// Database - support Railway's DATABASE_URL / DATABASE_PRIVATE_URL or fallback to appsettings
+// Database - support Railway env vars in multiple formats
 var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_PRIVATE_URL")
     ?? Environment.GetEnvironmentVariable("DATABASE_URL");
+var pgHost = Environment.GetEnvironmentVariable("PGHOST");
 string connectionString;
+
+Log.Information("DATABASE_PRIVATE_URL set: {Set}", !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DATABASE_PRIVATE_URL")));
+Log.Information("DATABASE_URL set: {Set}", !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DATABASE_URL")));
+Log.Information("PGHOST set: {Set}", !string.IsNullOrEmpty(pgHost));
+
 if (!string.IsNullOrEmpty(databaseUrl) && databaseUrl.StartsWith("postgresql://"))
 {
     var uri = new Uri(databaseUrl);
     var userInfo = uri.UserInfo.Split(':');
     connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
 }
+else if (!string.IsNullOrEmpty(pgHost))
+{
+    var pgPort = Environment.GetEnvironmentVariable("PGPORT") ?? "5432";
+    var pgUser = Environment.GetEnvironmentVariable("PGUSER") ?? "postgres";
+    var pgPass = Environment.GetEnvironmentVariable("PGPASSWORD") ?? "";
+    var pgDb = Environment.GetEnvironmentVariable("PGDATABASE") ?? "railway";
+    connectionString = $"Host={pgHost};Port={pgPort};Database={pgDb};Username={pgUser};Password={pgPass};SSL Mode=Require;Trust Server Certificate=true";
+}
 else
 {
     connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
 }
-Log.Information("Connecting to database at: {Host}", connectionString.Contains("Host=") ? connectionString.Split("Host=")[1].Split(';')[0] : "appsettings");
+Log.Information("Connecting to database at: {Host}", connectionString.Contains("Host=") ? connectionString.Split("Host=")[1].Split(';')[0] : "localhost (fallback)");
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
 // JWT Authentication
