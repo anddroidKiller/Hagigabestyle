@@ -30,11 +30,11 @@ if (!string.IsNullOrEmpty(databaseUrl))
     var username = userInfo[0];
     var password = userInfo.Length > 1 ? userInfo[1] : string.Empty;
     var host = uri.Host;
-    var port = uri.Port > 0 ? uri.Port : 5432;
+    var dbPort = uri.Port > 0 ? uri.Port : 5432;
     var database = uri.AbsolutePath.TrimStart('/');
 
-    connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
-    Log.Information("Connecting to database via DATABASE_URL at: {Host}:{Port}", host, port);
+    connectionString = $"Host={host};Port={dbPort};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
+    Log.Information("Connecting to database via DATABASE_URL at: {Host}:{Port}", host, dbPort);
 }
 else
 {
