@@ -140,14 +140,16 @@ var app = builder.Build();
 
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors("AllowFrontend");
+
+// Static files must come before auth/routing
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-
-// Serve frontend static files (built React app in wwwroot)
-app.UseDefaultFiles();
-app.UseStaticFiles();
 app.MapFallbackToFile("index.html");
 
+Log.Information("App starting on port {Port}", Environment.GetEnvironmentVariable("PORT") ?? "5000");
 var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
 app.Run($"http://0.0.0.0:{port}");
