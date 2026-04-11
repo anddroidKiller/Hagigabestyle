@@ -16,11 +16,13 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-// Database - support Railway's DATABASE_URL or fallback to appsettings
-var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
-if (!string.IsNullOrEmpty(connectionString) && connectionString.StartsWith("postgresql://"))
+// Database - support Railway's DATABASE_URL / DATABASE_PRIVATE_URL or fallback to appsettings
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_PRIVATE_URL")
+    ?? Environment.GetEnvironmentVariable("DATABASE_URL");
+string connectionString;
+if (!string.IsNullOrEmpty(databaseUrl) && databaseUrl.StartsWith("postgresql://"))
 {
-    var uri = new Uri(connectionString);
+    var uri = new Uri(databaseUrl);
     var userInfo = uri.UserInfo.Split(':');
     connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
 }
@@ -28,6 +30,7 @@ else
 {
     connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
 }
+Log.Information("Connecting to database at: {Host}", connectionString.Contains("Host=") ? connectionString.Split("Host=")[1].Split(';')[0] : "appsettings");
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
 // JWT Authentication
@@ -80,11 +83,25 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Auto-migrate and seed on startup
+// Auto-migrate and seed on startup (with retry for Railway cold starts)
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+
+    var retries = 10;
+    for (var i = 0; i < retries; i++)
+    {
+        try
+        {
+            db.Database.Migrate();
+            break;
+        }
+        catch (Exception ex) when (i < retries - 1)
+        {
+            Log.Warning("Database not ready (attempt {Attempt}/{Total}): {Message}", i + 1, retries, ex.Message);
+            Thread.Sleep(3000);
+        }
+    }
 
     if (!db.AdminUsers.Any())
     {
