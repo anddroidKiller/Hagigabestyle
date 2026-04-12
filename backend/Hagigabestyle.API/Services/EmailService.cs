@@ -1,5 +1,6 @@
-using MailKit.Net.Smtp;
-using MimeKit;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 using Hagigabestyle.API.DTOs;
 
 namespace Hagigabestyle.API.Services;
@@ -8,11 +9,13 @@ public class EmailService
 {
     private readonly IConfiguration _config;
     private readonly ILogger<EmailService> _logger;
+    private readonly IHttpClientFactory _httpClientFactory;
 
-    public EmailService(IConfiguration config, ILogger<EmailService> logger)
+    public EmailService(IConfiguration config, ILogger<EmailService> logger, IHttpClientFactory httpClientFactory)
     {
         _config = config;
         _logger = logger;
+        _httpClientFactory = httpClientFactory;
     }
 
     public async Task SendOrderConfirmationAsync(OrderDto order)
@@ -25,50 +28,55 @@ public class EmailService
             return;
         }
 
-        var host = _config["Email:SmtpHost"] ?? "smtp-relay.brevo.com";
-        var portStr = _config["Email:SmtpPort"] ?? "587";
-        var user = _config["Email:SmtpUser"];
-        var pass = _config["Email:SmtpPassword"];
-        var fromEmail = _config["Email:FromEmail"] ?? "noreply@hagigabestyle.co.il";
+        var apiKey = _config["Email:BrevoApiKey"];
+        var fromEmail = _config["Email:FromEmail"] ?? "service@hagigabestyle.co.il";
         var fromName = _config["Email:FromName"] ?? "חגיגה בסטייל";
 
-        _logger.LogInformation("[EMAIL] Config: Host={Host}, Port={Port}, User={User}, From={From}",
-            host, portStr, string.IsNullOrEmpty(user) ? "(NOT SET)" : user, fromEmail);
+        _logger.LogInformation("[EMAIL] Config: ApiKey={KeySet}, From={From}",
+            string.IsNullOrEmpty(apiKey) ? "(NOT SET)" : "***set***", fromEmail);
 
-        if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(pass))
+        if (string.IsNullOrEmpty(apiKey))
         {
-            _logger.LogError("[EMAIL] SMTP credentials not configured! Set Email__SmtpUser and Email__SmtpPassword env vars");
+            _logger.LogError("[EMAIL] Brevo API key not configured! Set Email__BrevoApiKey env var");
             return;
         }
 
         try
         {
-            var port = int.Parse(portStr);
-
-            var message = new MimeMessage();
-            message.From.Add(new MailboxAddress(fromName, fromEmail));
-            message.To.Add(MailboxAddress.Parse(order.CustomerEmail));
-            message.Subject = $"חגיגה בסטייל - אישור הזמנה #{order.Id}";
-
             var html = BuildOrderEmailHtml(order);
-            message.Body = new TextPart("html") { Text = html };
 
-            _logger.LogInformation("[EMAIL] Connecting to SMTP {Host}:{Port}...", host, port);
-            using var client = new SmtpClient();
-            client.Timeout = 30000;
-            var sslOptions = port == 465
-                ? MailKit.Security.SecureSocketOptions.SslOnConnect
-                : MailKit.Security.SecureSocketOptions.StartTls;
-            await client.ConnectAsync(host, port, sslOptions);
-            _logger.LogInformation("[EMAIL] Connected. Authenticating as {User}...", user);
+            var payload = new
+            {
+                sender = new { name = fromName, email = fromEmail },
+                to = new[] { new { email = order.CustomerEmail, name = order.CustomerName } },
+                subject = $"חגיגה בסטייל - אישור הזמנה #{order.Id}",
+                htmlContent = html
+            };
 
-            await client.AuthenticateAsync(user, pass);
-            _logger.LogInformation("[EMAIL] Authenticated. Sending to {To}...", order.CustomerEmail);
+            var json = JsonSerializer.Serialize(payload);
 
-            await client.SendAsync(message);
-            _logger.LogInformation("[EMAIL] Sent successfully for order #{OrderId} to {Email}", order.Id, order.CustomerEmail);
+            using var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Add("api-key", apiKey);
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            await client.DisconnectAsync(true);
+            _logger.LogInformation("[EMAIL] Sending via Brevo HTTP API to {To}...", order.CustomerEmail);
+
+            var response = await client.PostAsync(
+                "https://api.brevo.com/v3/smtp/email",
+                new StringContent(json, Encoding.UTF8, "application/json"));
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation("[EMAIL] Sent successfully for order #{OrderId} to {Email}. Response: {Response}",
+                    order.Id, order.CustomerEmail, responseBody);
+            }
+            else
+            {
+                _logger.LogError("[EMAIL] Brevo API returned {StatusCode} for order #{OrderId}: {Response}",
+                    response.StatusCode, order.Id, responseBody);
+            }
         }
         catch (Exception ex)
         {
