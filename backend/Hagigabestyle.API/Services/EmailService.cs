@@ -25,7 +25,7 @@ public class EmailService
             return;
         }
 
-        var host = _config["Email:SmtpHost"] ?? "smtp-relay.brevo.com";
+        var host = _config["Email:SmtpHost"] ?? "smtp.zoho.com";
         var portStr = _config["Email:SmtpPort"] ?? "587";
         var user = _config["Email:SmtpUser"];
         var pass = _config["Email:SmtpPassword"];
@@ -55,7 +55,7 @@ public class EmailService
 
             _logger.LogInformation("[EMAIL] Connecting to SMTP {Host}:{Port}...", host, port);
             using var client = new SmtpClient();
-            client.Timeout = 30000;
+            client.Timeout = 60000;
             var sslOptions = port == 465
                 ? MailKit.Security.SecureSocketOptions.SslOnConnect
                 : MailKit.Security.SecureSocketOptions.StartTls;
