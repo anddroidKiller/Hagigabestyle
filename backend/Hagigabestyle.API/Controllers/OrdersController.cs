@@ -11,12 +11,14 @@ public class OrdersController : ControllerBase
     private readonly OrderService _orderService;
     private readonly TranzilaService _tranzilaService;
     private readonly EmailService _emailService;
+    private readonly IServiceScopeFactory _scopeFactory;
 
-    public OrdersController(OrderService orderService, TranzilaService tranzilaService, EmailService emailService)
+    public OrdersController(OrderService orderService, TranzilaService tranzilaService, EmailService emailService, IServiceScopeFactory scopeFactory)
     {
         _orderService = orderService;
         _tranzilaService = tranzilaService;
         _emailService = emailService;
+        _scopeFactory = scopeFactory;
     }
 
     [HttpPost]
@@ -25,12 +27,16 @@ public class OrdersController : ControllerBase
         var result = await _orderService.CreateAsync(dto);
         result.PaymentUrl = _tranzilaService.GeneratePaymentUrl(result.OrderId, result.TotalAmount, dto.CustomerEmail);
 
-        // Fire-and-forget email — don't block the response
+        // Send email in background with its own DI scope
+        var orderId = result.OrderId;
         _ = Task.Run(async () =>
         {
-            var order = await _orderService.GetByIdAsync(result.OrderId);
+            using var scope = _scopeFactory.CreateScope();
+            var orderService = scope.ServiceProvider.GetRequiredService<OrderService>();
+            var emailService = scope.ServiceProvider.GetRequiredService<EmailService>();
+            var order = await orderService.GetByIdAsync(orderId);
             if (order != null)
-                await _emailService.SendOrderConfirmationAsync(order);
+                await emailService.SendOrderConfirmationAsync(order);
         });
 
         return Ok(result);
