@@ -55,7 +55,11 @@ public class EmailService
 
             _logger.LogInformation("[EMAIL] Connecting to SMTP {Host}:{Port}...", host, port);
             using var client = new SmtpClient();
-            await client.ConnectAsync(host, port, MailKit.Security.SecureSocketOptions.StartTls);
+            client.Timeout = 30000;
+            var sslOptions = port == 465
+                ? MailKit.Security.SecureSocketOptions.SslOnConnect
+                : MailKit.Security.SecureSocketOptions.StartTls;
+            await client.ConnectAsync(host, port, sslOptions);
             _logger.LogInformation("[EMAIL] Connected. Authenticating as {User}...", user);
 
             await client.AuthenticateAsync(user, pass);
