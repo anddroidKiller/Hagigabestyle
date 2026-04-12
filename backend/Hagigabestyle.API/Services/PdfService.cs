@@ -8,7 +8,6 @@ namespace Hagigabestyle.API.Services;
 public class PdfService
 {
     private readonly IConfiguration _config;
-
     public PdfService(IConfiguration config)
     {
         _config = config;
@@ -33,7 +32,7 @@ public class PdfService
                 page.Size(PageSizes.A4);
                 page.Margin(40);
                 page.ContentFromRightToLeft();
-                page.DefaultTextStyle(x => x.FontSize(11).FontFamily("Arial"));
+                page.DefaultTextStyle(x => x.FontSize(11).FontFamily("Noto Sans Hebrew", "Noto Sans", "DejaVu Sans", "Liberation Sans"));
 
                 page.Header().Element(header =>
                 {

@@ -16,6 +16,9 @@ RUN dotnet publish -c Release -o /publish
 
 # Stage 3: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    fonts-noto-core fonts-noto-extra libfontconfig1 \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=backend-build /publish ./
 COPY --from=frontend-build /app/frontend/dist ./wwwroot/
