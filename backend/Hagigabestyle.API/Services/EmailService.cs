@@ -17,42 +17,59 @@ public class EmailService
 
     public async Task SendOrderConfirmationAsync(OrderDto order)
     {
+        _logger.LogInformation("[EMAIL] Starting email send for order #{OrderId}", order.Id);
+
         if (string.IsNullOrWhiteSpace(order.CustomerEmail))
         {
-            _logger.LogInformation("No email for order #{OrderId}, skipping", order.Id);
+            _logger.LogWarning("[EMAIL] No email address for order #{OrderId}, skipping", order.Id);
+            return;
+        }
+
+        var host = _config["Email:SmtpHost"] ?? "smtp-relay.brevo.com";
+        var portStr = _config["Email:SmtpPort"] ?? "587";
+        var user = _config["Email:SmtpUser"];
+        var pass = _config["Email:SmtpPassword"];
+        var fromEmail = _config["Email:FromEmail"] ?? "noreply@hagigabestyle.co.il";
+        var fromName = _config["Email:FromName"] ?? "חגיגה בסטייל";
+
+        _logger.LogInformation("[EMAIL] Config: Host={Host}, Port={Port}, User={User}, From={From}",
+            host, portStr, string.IsNullOrEmpty(user) ? "(NOT SET)" : user, fromEmail);
+
+        if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(pass))
+        {
+            _logger.LogError("[EMAIL] SMTP credentials not configured! Set Email__SmtpUser and Email__SmtpPassword env vars");
             return;
         }
 
         try
         {
+            var port = int.Parse(portStr);
+
             var message = new MimeMessage();
-            message.From.Add(new MailboxAddress(
-                _config["Email:FromName"] ?? "חגיגה בסטייל",
-                _config["Email:FromEmail"] ?? "noreply@hagigabestyle.co.il"));
+            message.From.Add(new MailboxAddress(fromName, fromEmail));
             message.To.Add(MailboxAddress.Parse(order.CustomerEmail));
             message.Subject = $"חגיגה בסטייל - אישור הזמנה #{order.Id}";
 
             var html = BuildOrderEmailHtml(order);
             message.Body = new TextPart("html") { Text = html };
 
+            _logger.LogInformation("[EMAIL] Connecting to SMTP {Host}:{Port}...", host, port);
             using var client = new SmtpClient();
-            var host = _config["Email:SmtpHost"] ?? "smtp-relay.brevo.com";
-            var port = int.Parse(_config["Email:SmtpPort"] ?? "587");
             await client.ConnectAsync(host, port, MailKit.Security.SecureSocketOptions.StartTls);
+            _logger.LogInformation("[EMAIL] Connected. Authenticating as {User}...", user);
 
-            var user = _config["Email:SmtpUser"];
-            var pass = _config["Email:SmtpPassword"];
-            if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(pass))
-                await client.AuthenticateAsync(user, pass);
+            await client.AuthenticateAsync(user, pass);
+            _logger.LogInformation("[EMAIL] Authenticated. Sending to {To}...", order.CustomerEmail);
 
             await client.SendAsync(message);
-            await client.DisconnectAsync(true);
+            _logger.LogInformation("[EMAIL] Sent successfully for order #{OrderId} to {Email}", order.Id, order.CustomerEmail);
 
-            _logger.LogInformation("Order confirmation email sent for order #{OrderId} to {Email}", order.Id, order.CustomerEmail);
+            await client.DisconnectAsync(true);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send order confirmation email for order #{OrderId}", order.Id);
+            _logger.LogError(ex, "[EMAIL] FAILED for order #{OrderId} to {Email}: {Message}",
+                order.Id, order.CustomerEmail, ex.Message);
         }
     }
 

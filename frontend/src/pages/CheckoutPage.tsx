@@ -99,7 +99,10 @@ export default function CheckoutPage() {
                   label={t('checkout.customerEmail')}
                   type="email"
                   fullWidth
-                  {...register('customerEmail')}
+                  required
+                  error={!!errors.customerEmail}
+                  helperText={errors.customerEmail && t('checkout.required')}
+                  {...register('customerEmail', { required: true, pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ })}
                 />
                 <TextField
                   label={t('checkout.shippingAddress')}
