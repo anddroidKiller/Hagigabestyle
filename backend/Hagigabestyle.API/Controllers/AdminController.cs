@@ -14,19 +14,22 @@ public class AdminController : ControllerBase
     private readonly ProductService _productService;
     private readonly PackageService _packageService;
     private readonly OrderService _orderService;
+    private readonly PdfService _pdfService;
 
     public AdminController(
         AuthService authService,
         CategoryService categoryService,
         ProductService productService,
         PackageService packageService,
-        OrderService orderService)
+        OrderService orderService,
+        PdfService pdfService)
     {
         _authService = authService;
         _categoryService = categoryService;
         _productService = productService;
         _packageService = packageService;
         _orderService = orderService;
+        _pdfService = pdfService;
     }
 
     [HttpPost("login")]
@@ -155,5 +158,25 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> UpdateOrderStatus(int id, [FromBody] UpdateOrderStatusDto dto)
     {
         return await _orderService.UpdateStatusAsync(id, dto.Status) ? NoContent() : NotFound();
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("orders/{id}/receipt")]
+    public async Task<IActionResult> GetOrderReceipt(int id)
+    {
+        var order = await _orderService.GetByIdAsync(id);
+        if (order == null) return NotFound();
+        var pdf = _pdfService.GenerateReceiptPdf(order);
+        return File(pdf, "application/pdf", $"receipt-{id}.pdf");
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("orders/{id}/invoice")]
+    public async Task<IActionResult> GetOrderInvoice(int id)
+    {
+        var order = await _orderService.GetByIdAsync(id);
+        if (order == null) return NotFound();
+        var pdf = _pdfService.GenerateInvoicePdf(order);
+        return File(pdf, "application/pdf", $"invoice-{id}.pdf");
     }
 }

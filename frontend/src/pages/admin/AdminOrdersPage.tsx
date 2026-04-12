@@ -1,13 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Typography, Box, Paper,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Chip, Dialog, DialogTitle, DialogContent, DialogActions, Button, MenuItem, TextField,
+  IconButton, Tooltip, Divider,
 } from '@mui/material';
+import PrintIcon from '@mui/icons-material/Print';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import DescriptionIcon from '@mui/icons-material/Description';
 import { adminApi, OrderDto } from '../../services/api';
 
 const STATUSES = ['Pending', 'Paid', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function AdminOrdersPage() {
   const { t } = useTranslation();
@@ -15,6 +28,7 @@ export default function AdminOrdersPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<OrderDto | null>(null);
   const [newStatus, setNewStatus] = useState('');
+  const printRef = useRef<HTMLDivElement>(null);
 
   const load = () => { adminApi.getOrders().then(setOrders); };
   useEffect(() => { load(); }, []);
@@ -31,6 +45,70 @@ export default function AdminOrdersPage() {
       setDialogOpen(false);
       load();
     }
+  };
+
+  const handlePrint = () => {
+    if (!printRef.current || !selectedOrder) return;
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html dir="rtl" lang="he">
+      <head>
+        <meta charset="UTF-8">
+        <title>הזמנה #${selectedOrder.id}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 30px; direction: rtl; }
+          h1 { color: #c9a54e; }
+          table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+          th, td { border: 1px solid #ddd; padding: 10px; text-align: right; }
+          th { background: #f5f0e0; }
+          .total { font-size: 20px; font-weight: bold; color: #c9a54e; margin-top: 20px; }
+          .info { margin: 5px 0; }
+          @media print { body { padding: 15px; } }
+        </style>
+      </head>
+      <body>
+        <h1>חגיגה בסטייל</h1>
+        <h2>הזמנה #${selectedOrder.id}</h2>
+        <p class="info"><strong>שם:</strong> ${selectedOrder.customerName}</p>
+        <p class="info"><strong>טלפון:</strong> ${selectedOrder.customerPhone}</p>
+        ${selectedOrder.customerEmail ? `<p class="info"><strong>אימייל:</strong> ${selectedOrder.customerEmail}</p>` : ''}
+        ${selectedOrder.shippingAddress ? `<p class="info"><strong>כתובת:</strong> ${selectedOrder.shippingAddress}, ${selectedOrder.city || ''}</p>` : ''}
+        <p class="info"><strong>תאריך:</strong> ${new Date(selectedOrder.createdAt).toLocaleDateString('he-IL')}</p>
+        <table>
+          <thead><tr><th>פריט</th><th>כמות</th><th>מחיר יחידה</th><th>סה"כ</th></tr></thead>
+          <tbody>
+            ${selectedOrder.items.map(item => `
+              <tr>
+                <td>${item.nameHe}</td>
+                <td>${item.quantity}</td>
+                <td>₪${item.unitPrice.toFixed(2)}</td>
+                <td>₪${(item.unitPrice * item.quantity).toFixed(2)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        <p class="total">סה"כ: ₪${selectedOrder.totalAmount.toFixed(2)}</p>
+        ${selectedOrder.notes ? `<p><strong>הערות:</strong> ${selectedOrder.notes}</p>` : ''}
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+  };
+
+  const handleDownloadReceipt = async () => {
+    if (!selectedOrder) return;
+    const blob = await adminApi.getOrderReceipt(selectedOrder.id);
+    downloadBlob(blob, `receipt-${selectedOrder.id}.pdf`);
+  };
+
+  const handleDownloadInvoice = async () => {
+    if (!selectedOrder) return;
+    const blob = await adminApi.getOrderInvoice(selectedOrder.id);
+    downloadBlob(blob, `invoice-${selectedOrder.id}.pdf`);
   };
 
   const statusColor: Record<string, 'default' | 'warning' | 'success' | 'info' | 'error'> = {
@@ -89,17 +167,32 @@ export default function AdminOrdersPage() {
       </TableContainer>
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>הזמנה #{selectedOrder?.id}</DialogTitle>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span>הזמנה #{selectedOrder?.id}</span>
+          <Box>
+            <Tooltip title={t('admin.printOrder')}>
+              <IconButton onClick={handlePrint} color="primary"><PrintIcon /></IconButton>
+            </Tooltip>
+            <Tooltip title={t('admin.downloadReceipt')}>
+              <IconButton onClick={handleDownloadReceipt} color="success"><ReceiptIcon /></IconButton>
+            </Tooltip>
+            <Tooltip title={t('admin.downloadInvoice')}>
+              <IconButton onClick={handleDownloadInvoice} color="info"><DescriptionIcon /></IconButton>
+            </Tooltip>
+          </Box>
+        </DialogTitle>
         <DialogContent>
           {selectedOrder && (
-            <Box sx={{ mt: 1 }}>
+            <Box sx={{ mt: 1 }} ref={printRef}>
               <Typography><strong>{t('checkout.customerName')}:</strong> {selectedOrder.customerName}</Typography>
               <Typography><strong>{t('checkout.customerPhone')}:</strong> {selectedOrder.customerPhone}</Typography>
               {selectedOrder.customerEmail && <Typography><strong>{t('checkout.customerEmail')}:</strong> {selectedOrder.customerEmail}</Typography>}
               {selectedOrder.shippingAddress && <Typography><strong>{t('checkout.shippingAddress')}:</strong> {selectedOrder.shippingAddress}</Typography>}
               {selectedOrder.notes && <Typography><strong>{t('checkout.notes')}:</strong> {selectedOrder.notes}</Typography>}
 
-              <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>{t('package.items')}:</Typography>
+              <Divider sx={{ my: 2 }} />
+
+              <Typography variant="h6" sx={{ mb: 1 }}>{t('package.items')}:</Typography>
               {selectedOrder.items.map((item, i) => (
                 <Typography key={i} variant="body2">
                   {item.nameHe} x{item.quantity} - ₪{(item.unitPrice * item.quantity).toFixed(2)}
@@ -109,16 +202,18 @@ export default function AdminOrdersPage() {
                 {t('common.total')}: ₪{selectedOrder.totalAmount.toFixed(2)}
               </Typography>
 
+              <Divider sx={{ my: 2 }} />
+
               <TextField
                 select fullWidth label={t('admin.orderStatus')} value={newStatus}
-                onChange={e => setNewStatus(e.target.value)} sx={{ mt: 3 }}
+                onChange={e => setNewStatus(e.target.value)}
               >
                 {STATUSES.map(s => <MenuItem key={s} value={s}>{t(`admin.status.${s}`)}</MenuItem>)}
               </TextField>
             </Box>
           )}
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={() => setDialogOpen(false)}>{t('common.cancel')}</Button>
           <Button onClick={handleUpdateStatus} variant="contained">{t('common.save')}</Button>
         </DialogActions>

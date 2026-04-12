@@ -101,6 +101,11 @@
     "imageUrl": "כתובת תמונה",
     "active": "פעיל",
     "inactive": "לא פעיל",
+    "printOrder": "הדפס הזמנה",
+    "receipt": "קבלה",
+    "invoice": "חשבונית",
+    "downloadReceipt": "הורד קבלה",
+    "downloadInvoice": "הורד חשבונית",
     "status": {
       "Pending": "ממתין",
       "Paid": "שולם",

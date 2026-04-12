@@ -163,6 +163,8 @@ export const adminApi = {
   getOrders: () => api.get<OrderDto[]>('/admin/orders').then(r => r.data),
   getOrder: (id: number) => api.get<OrderDto>(`/admin/orders/${id}`).then(r => r.data),
   updateOrderStatus: (id: number, status: string) => api.put(`/admin/orders/${id}/status`, { status }),
+  getOrderReceipt: (id: number) => api.get(`/admin/orders/${id}/receipt`, { responseType: 'blob' }).then(r => r.data as Blob),
+  getOrderInvoice: (id: number) => api.get(`/admin/orders/${id}/invoice`, { responseType: 'blob' }).then(r => r.data as Blob),
 };
 
 export default api;

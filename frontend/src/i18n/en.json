@@ -101,6 +101,11 @@
     "imageUrl": "Image URL",
     "active": "Active",
     "inactive": "Inactive",
+    "printOrder": "Print Order",
+    "receipt": "Receipt",
+    "invoice": "Invoice",
+    "downloadReceipt": "Download Receipt",
+    "downloadInvoice": "Download Invoice",
     "status": {
       "Pending": "Pending",
       "Paid": "Paid",

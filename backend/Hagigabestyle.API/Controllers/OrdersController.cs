@@ -10,11 +10,13 @@ public class OrdersController : ControllerBase
 {
     private readonly OrderService _orderService;
     private readonly TranzilaService _tranzilaService;
+    private readonly EmailService _emailService;
 
-    public OrdersController(OrderService orderService, TranzilaService tranzilaService)
+    public OrdersController(OrderService orderService, TranzilaService tranzilaService, EmailService emailService)
     {
         _orderService = orderService;
         _tranzilaService = tranzilaService;
+        _emailService = emailService;
     }
 
     [HttpPost]
@@ -22,6 +24,15 @@ public class OrdersController : ControllerBase
     {
         var result = await _orderService.CreateAsync(dto);
         result.PaymentUrl = _tranzilaService.GeneratePaymentUrl(result.OrderId, result.TotalAmount, dto.CustomerEmail);
+
+        // Fire-and-forget email — don't block the response
+        _ = Task.Run(async () =>
+        {
+            var order = await _orderService.GetByIdAsync(result.OrderId);
+            if (order != null)
+                await _emailService.SendOrderConfirmationAsync(order);
+        });
+
         return Ok(result);
     }
 
