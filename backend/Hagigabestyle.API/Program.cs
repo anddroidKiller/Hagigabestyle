@@ -81,6 +81,7 @@ builder.Services.AddScoped<OrderService>();
 builder.Services.AddSingleton<TranzilaService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<PdfService>();
+builder.Services.AddScoped<SiteSettingsService>();
 
 // Controllers + JSON
 builder.Services.AddControllers()

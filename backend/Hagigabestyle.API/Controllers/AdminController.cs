@@ -15,6 +15,7 @@ public class AdminController : ControllerBase
     private readonly PackageService _packageService;
     private readonly OrderService _orderService;
     private readonly PdfService _pdfService;
+    private readonly SiteSettingsService _siteSettingsService;
 
     public AdminController(
         AuthService authService,
@@ -22,7 +23,8 @@ public class AdminController : ControllerBase
         ProductService productService,
         PackageService packageService,
         OrderService orderService,
-        PdfService pdfService)
+        PdfService pdfService,
+        SiteSettingsService siteSettingsService)
     {
         _authService = authService;
         _categoryService = categoryService;
@@ -30,6 +32,7 @@ public class AdminController : ControllerBase
         _packageService = packageService;
         _orderService = orderService;
         _pdfService = pdfService;
+        _siteSettingsService = siteSettingsService;
     }
 
     [HttpPost("login")]
@@ -178,5 +181,20 @@ public class AdminController : ControllerBase
         if (order == null) return NotFound();
         var pdf = _pdfService.GenerateInvoicePdf(order);
         return File(pdf, "application/pdf", $"invoice-{id}.pdf");
+    }
+
+    // Site settings (maintenance mode)
+    [Authorize(Roles = "Admin")]
+    [HttpGet("site-settings")]
+    public async Task<ActionResult<SiteSettingsDto>> GetSiteSettings()
+    {
+        return await _siteSettingsService.GetAsync();
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPut("site-settings/maintenance")]
+    public async Task<ActionResult<SiteSettingsDto>> SetMaintenance([FromBody] UpdateMaintenanceDto dto)
+    {
+        return await _siteSettingsService.SetMaintenanceAsync(dto.IsMaintenanceMode);
     }
 }

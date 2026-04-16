@@ -115,6 +115,11 @@ export interface LoginResult {
   expiration: string;
 }
 
+export interface SiteSettingsDto {
+  isMaintenanceMode: boolean;
+  updatedAt: string;
+}
+
 // Public API
 export const categoriesApi = {
   getAll: () => api.get<CategoryDto[]>('/categories').then(r => r.data),
@@ -135,6 +140,10 @@ export const packagesApi = {
 export const ordersApi = {
   create: (dto: CreateOrderDto) => api.post<CreateOrderResult>('/orders', dto).then(r => r.data),
   getById: (id: number) => api.get<OrderDto>(`/orders/${id}`).then(r => r.data),
+};
+
+export const siteSettingsApi = {
+  getStatus: () => api.get<SiteSettingsDto>('/site-settings/status').then(r => r.data),
 };
 
 // Admin API
@@ -164,6 +173,10 @@ export const adminApi = {
   updateOrderStatus: (id: number, status: string) => api.put(`/admin/orders/${id}/status`, { status }),
   getOrderReceipt: (id: number) => api.get(`/admin/orders/${id}/receipt`, { responseType: 'blob' }).then(r => r.data as Blob),
   getOrderInvoice: (id: number) => api.get(`/admin/orders/${id}/invoice`, { responseType: 'blob' }).then(r => r.data as Blob),
+
+  getSiteSettings: () => api.get<SiteSettingsDto>('/admin/site-settings').then(r => r.data),
+  setMaintenance: (isMaintenanceMode: boolean) =>
+    api.put<SiteSettingsDto>('/admin/site-settings/maintenance', { isMaintenanceMode }).then(r => r.data),
 };
 
 export default api;

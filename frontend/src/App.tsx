@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
@@ -8,6 +8,7 @@ import rtlPlugin from 'stylis-plugin-rtl';
 import { prefixer } from 'stylis';
 import { useTranslation } from 'react-i18next';
 import { getTheme } from './styles/theme';
+import { useSiteSettingsStore } from './store/siteSettingsStore';
 
 import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
@@ -19,6 +20,7 @@ import PackageDetailPage from './pages/PackageDetailPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrderConfirmationPage from './pages/OrderConfirmationPage';
+import MaintenancePage from './pages/MaintenancePage';
 
 import AdminLoginPage from './pages/admin/AdminLoginPage';
 import AdminLayout from './pages/admin/AdminLayout';
@@ -44,26 +46,39 @@ export default function App() {
   const theme = useMemo(() => getTheme(direction), [direction]);
   const cache = isRtl ? rtlCache : ltrCache;
 
+  const isMaintenanceMode = useSiteSettingsStore((s) => s.isMaintenanceMode);
+  const fetchStatus = useSiteSettingsStore((s) => s.fetchStatus);
+
+  useEffect(() => {
+    fetchStatus();
+    // Re-check every 60s so customers get out of maintenance without a manual refresh
+    const id = window.setInterval(fetchStatus, 60_000);
+    return () => window.clearInterval(id);
+  }, [fetchStatus]);
+
+  const customerRoutes = isMaintenanceMode ? (
+    <Route path="*" element={<MaintenancePage />} />
+  ) : (
+    <Route element={<Layout />}>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/categories" element={<CategoriesPage />} />
+      <Route path="/category/:id" element={<CategoryPage />} />
+      <Route path="/product/:id" element={<ProductPage />} />
+      <Route path="/packages" element={<PackagesPage />} />
+      <Route path="/package/:id" element={<PackageDetailPage />} />
+      <Route path="/cart" element={<CartPage />} />
+      <Route path="/checkout" element={<CheckoutPage />} />
+      <Route path="/order-confirmation/:id" element={<OrderConfirmationPage />} />
+    </Route>
+  );
+
   return (
     <CacheProvider value={cache}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <BrowserRouter>
           <Routes>
-            {/* Customer Routes */}
-            <Route element={<Layout />}>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/categories" element={<CategoriesPage />} />
-              <Route path="/category/:id" element={<CategoryPage />} />
-              <Route path="/product/:id" element={<ProductPage />} />
-              <Route path="/packages" element={<PackagesPage />} />
-              <Route path="/package/:id" element={<PackageDetailPage />} />
-              <Route path="/cart" element={<CartPage />} />
-              <Route path="/checkout" element={<CheckoutPage />} />
-              <Route path="/order-confirmation/:id" element={<OrderConfirmationPage />} />
-            </Route>
-
-            {/* Admin Routes */}
+            {/* Admin routes are always available so the admin can toggle maintenance */}
             <Route path="/admin/login" element={<AdminLoginPage />} />
             <Route path="/admin" element={<AdminLayout />}>
               <Route path="dashboard" element={<DashboardPage />} />
@@ -72,6 +87,8 @@ export default function App() {
               <Route path="packages" element={<AdminPackagesPage />} />
               <Route path="orders" element={<AdminOrdersPage />} />
             </Route>
+
+            {customerRoutes}
           </Routes>
         </BrowserRouter>
       </ThemeProvider>

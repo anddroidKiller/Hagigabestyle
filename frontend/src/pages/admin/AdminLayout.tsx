@@ -3,8 +3,9 @@ import { useTranslation } from 'react-i18next';
 import {
   Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText,
   AppBar, Toolbar, Typography, IconButton, useMediaQuery, useTheme, Container,
+  Switch, Tooltip, Chip, Snackbar, Alert,
 } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import CategoryIcon from '@mui/icons-material/Category';
 import InventoryIcon from '@mui/icons-material/Inventory';
@@ -12,7 +13,10 @@ import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
+import BuildCircleIcon from '@mui/icons-material/BuildCircle';
 import { useAuthStore } from '../../store/authStore';
+import { useSiteSettingsStore } from '../../store/siteSettingsStore';
+import { adminApi } from '../../services/api';
 
 const DRAWER_WIDTH = 260;
 
@@ -23,6 +27,39 @@ export default function AdminLayout() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
   const { isAuthenticated, fullName, logout } = useAuthStore();
+  const isMaintenanceMode = useSiteSettingsStore((s) => s.isMaintenanceMode);
+  const setMaintenanceLocal = useSiteSettingsStore((s) => s.setMaintenance);
+  const fetchStatus = useSiteSettingsStore((s) => s.fetchStatus);
+  const [toggleLoading, setToggleLoading] = useState(false);
+  const [snack, setSnack] = useState<{ open: boolean; severity: 'success' | 'error'; message: string }>({
+    open: false,
+    severity: 'success',
+    message: '',
+  });
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchStatus();
+    }
+  }, [isAuthenticated, fetchStatus]);
+
+  const handleToggleMaintenance = async () => {
+    const next = !isMaintenanceMode;
+    setToggleLoading(true);
+    try {
+      const result = await adminApi.setMaintenance(next);
+      setMaintenanceLocal(result.isMaintenanceMode);
+      setSnack({
+        open: true,
+        severity: 'success',
+        message: result.isMaintenanceMode ? t('admin.maintenanceEnabled') : t('admin.maintenanceDisabled'),
+      });
+    } catch {
+      setSnack({ open: true, severity: 'error', message: t('common.error') });
+    } finally {
+      setToggleLoading(false);
+    }
+  };
 
   if (!isAuthenticated) {
     return <Navigate to="/admin/login" />;
@@ -95,6 +132,64 @@ export default function AdminLayout() {
             <Typography variant="body1" sx={{ flexGrow: 1 }}>
               {fullName}
             </Typography>
+
+            <Tooltip
+              title={
+                isMaintenanceMode
+                  ? t('admin.maintenanceTooltipOn')
+                  : t('admin.maintenanceTooltipOff')
+              }
+              arrow
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  px: 1.25,
+                  py: 0.5,
+                  borderRadius: 999,
+                  border: '1px solid',
+                  borderColor: isMaintenanceMode ? 'warning.main' : 'divider',
+                  backgroundColor: isMaintenanceMode ? 'warning.light' : 'transparent',
+                  transition: 'all 0.2s ease',
+                  mr: 1,
+                }}
+              >
+                <BuildCircleIcon
+                  fontSize="small"
+                  sx={{ color: isMaintenanceMode ? 'warning.dark' : 'text.secondary' }}
+                />
+                {!isMobile && (
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontWeight: 600,
+                      color: isMaintenanceMode ? 'warning.dark' : 'text.secondary',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {t('admin.maintenanceMode')}
+                  </Typography>
+                )}
+                <Switch
+                  size="small"
+                  checked={isMaintenanceMode}
+                  onChange={handleToggleMaintenance}
+                  disabled={toggleLoading}
+                  color="warning"
+                />
+                {isMaintenanceMode && !isMobile && (
+                  <Chip
+                    label={t('admin.maintenanceOn')}
+                    color="warning"
+                    size="small"
+                    sx={{ fontWeight: 700, height: 22 }}
+                  />
+                )}
+              </Box>
+            </Tooltip>
+
             <IconButton onClick={logout} title={t('common.logout')}>
               <LogoutIcon />
             </IconButton>
@@ -104,6 +199,21 @@ export default function AdminLayout() {
         <Container maxWidth="xl" sx={{ py: 3, flexGrow: 1 }}>
           <Outlet />
         </Container>
+
+        <Snackbar
+          open={snack.open}
+          autoHideDuration={3500}
+          onClose={() => setSnack((s) => ({ ...s, open: false }))}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert
+            severity={snack.severity}
+            variant="filled"
+            onClose={() => setSnack((s) => ({ ...s, open: false }))}
+          >
+            {snack.message}
+          </Alert>
+        </Snackbar>
       </Box>
     </Box>
   );

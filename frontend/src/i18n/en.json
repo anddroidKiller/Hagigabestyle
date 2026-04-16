@@ -126,6 +126,17 @@
       "Shipped": "Shipped",
       "Delivered": "Delivered",
       "Cancelled": "Cancelled"
-    }
+    },
+    "maintenanceMode": "Maintenance",
+    "maintenanceOn": "ON",
+    "maintenanceTooltipOn": "Site is in maintenance mode. Click to turn off.",
+    "maintenanceTooltipOff": "Enable maintenance mode — customers will see a temporary page.",
+    "maintenanceEnabled": "Maintenance mode enabled — the store is shown as closed to customers",
+    "maintenanceDisabled": "Maintenance mode disabled — the store is back online"
+  },
+  "maintenance": {
+    "title": "Improving for you",
+    "subtitle": "We're doing some quick maintenance while adding new improvements. We'll be back shortly!",
+    "footer": "Thank you for your patience ❤"
   }
 }
