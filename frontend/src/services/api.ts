@@ -61,6 +61,8 @@ export interface PackageItemDto {
   quantity: number;
 }
 
+export type ShippingMethod = 'Pickup' | 'Delivery';
+
 export interface OrderDto {
   id: number;
   customerName: string;
@@ -68,6 +70,7 @@ export interface OrderDto {
   customerEmail?: string;
   shippingAddress?: string;
   city?: string;
+  shippingMethod: ShippingMethod;
   totalAmount: number;
   status: string;
   notes?: string;
@@ -90,6 +93,15 @@ export interface CreateOrderDto {
   customerEmail?: string;
   shippingAddress?: string;
   city?: string;
+  shippingMethod: ShippingMethod;
+  notes?: string;
+  items: { productId?: number; packageId?: number; quantity: number }[];
+}
+
+export interface UpdateOrderDto {
+  shippingAddress?: string;
+  city?: string;
+  shippingMethod: ShippingMethod;
   notes?: string;
   items: { productId?: number; packageId?: number; quantity: number }[];
 }
@@ -183,6 +195,8 @@ export const adminApi = {
   updateOrderStatus: (id: number, status: string) => api.put(`/admin/orders/${id}/status`, { status }),
   getOrderHistory: (id: number) =>
     api.get<OrderStatusHistoryDto[]>(`/admin/orders/${id}/history`).then(r => r.data),
+  updateOrder: (id: number, dto: UpdateOrderDto) =>
+    api.put<OrderDto>(`/admin/orders/${id}`, dto).then(r => r.data),
   getOrderReceipt: (id: number) => api.get(`/admin/orders/${id}/receipt`, { responseType: 'blob' }).then(r => r.data as Blob),
   getOrderInvoice: (id: number) => api.get(`/admin/orders/${id}/invoice`, { responseType: 'blob' }).then(r => r.data as Blob),
 

@@ -48,8 +48,9 @@ public class OrderService
             CustomerName = dto.CustomerName,
             CustomerPhone = dto.CustomerPhone,
             CustomerEmail = dto.CustomerEmail,
-            ShippingAddress = dto.ShippingAddress,
-            City = dto.City,
+            ShippingAddress = dto.ShippingMethod == ShippingMethod.Pickup ? null : dto.ShippingAddress,
+            City = dto.ShippingMethod == ShippingMethod.Pickup ? null : dto.City,
+            ShippingMethod = dto.ShippingMethod,
             Notes = dto.Notes,
             TotalAmount = totalAmount,
             Status = OrderStatus.Pending,
@@ -85,6 +86,61 @@ public class OrderService
             .Where(o => o.Id == id)
             .Select(o => MapToDto(o))
             .FirstOrDefaultAsync();
+    }
+
+    public async Task<OrderDto?> UpdateAsync(int id, UpdateOrderDto dto)
+    {
+        var order = await _db.Orders
+            .Include(o => o.OrderItems)
+            .FirstOrDefaultAsync(o => o.Id == id);
+        if (order == null) return null;
+
+        // Rebuild items, repricing from current product/package prices
+        decimal totalAmount = 0;
+        var newItems = new List<OrderItem>();
+        foreach (var item in dto.Items)
+        {
+            if (item.Quantity <= 0) continue;
+
+            decimal unitPrice;
+            if (item.ProductId.HasValue)
+            {
+                var product = await _db.Products.FindAsync(item.ProductId.Value)
+                              ?? throw new ArgumentException($"Product {item.ProductId} not found");
+                unitPrice = product.Price;
+            }
+            else if (item.PackageId.HasValue)
+            {
+                var package = await _db.Packages.FindAsync(item.PackageId.Value)
+                              ?? throw new ArgumentException($"Package {item.PackageId} not found");
+                unitPrice = package.Price;
+            }
+            else
+            {
+                continue;
+            }
+
+            totalAmount += unitPrice * item.Quantity;
+            newItems.Add(new OrderItem
+            {
+                OrderId = order.Id,
+                ProductId = item.ProductId,
+                PackageId = item.PackageId,
+                Quantity = item.Quantity,
+                UnitPrice = unitPrice,
+            });
+        }
+
+        _db.OrderItems.RemoveRange(order.OrderItems);
+        order.OrderItems = newItems;
+        order.TotalAmount = totalAmount;
+        order.ShippingMethod = dto.ShippingMethod;
+        order.ShippingAddress = dto.ShippingMethod == ShippingMethod.Pickup ? null : dto.ShippingAddress;
+        order.City = dto.ShippingMethod == ShippingMethod.Pickup ? null : dto.City;
+        order.Notes = dto.Notes;
+
+        await _db.SaveChangesAsync();
+        return await GetByIdAsync(id);
     }
 
     public async Task<bool> UpdateStatusAsync(int id, OrderStatus status, string username, string fullName)
@@ -167,6 +223,7 @@ public class OrderService
         CustomerEmail = o.CustomerEmail,
         ShippingAddress = o.ShippingAddress,
         City = o.City,
+        ShippingMethod = o.ShippingMethod.ToString(),
         TotalAmount = o.TotalAmount,
         Status = o.Status.ToString(),
         Notes = o.Notes,

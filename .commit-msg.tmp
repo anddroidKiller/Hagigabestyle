@@ -1,0 +1,12 @@
+Add shipping method (Pickup/Delivery) and full admin order editing
+
+Backend:
+- ShippingMethod enum on Order + migration (default Delivery)
+- CreateOrderDto / OrderDto / new UpdateOrderDto carry shipping method
+- OrderService.UpdateAsync rebuilds items and reprices from current catalog
+- PUT /api/admin/orders/{id} for full order edit
+
+Frontend:
+- Checkout: shipping method selector; Pickup shows store address/hours/phone, Delivery requires address fields
+- Admin orders dialog: edit mode toggled by pencil icon to change items, shipping method and address in-place
+- Translations (he/en) + store info entries

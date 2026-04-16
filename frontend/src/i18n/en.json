@@ -70,7 +70,16 @@
     "notes": "Notes",
     "placeOrder": "Place Order",
     "processing": "Processing...",
-    "required": "Required field"
+    "required": "Required field",
+    "shippingMethod": "Shipping Method",
+    "delivery": "Home Delivery",
+    "pickup": "Self Pickup",
+    "pickupAtStore": "Pickup at store"
+  },
+  "store": {
+    "address": "25 Herzl St., Tel Aviv",
+    "hours": "Sun-Thu 09:00-19:00, Fri 09:00-14:00",
+    "phone": "03-1234567"
   },
   "orderConfirmation": {
     "title": "Order Received!",
@@ -135,7 +144,10 @@
     "maintenanceDisabled": "Maintenance mode disabled — the store is back online",
     "statusHistory": "Status history",
     "noHistory": "No status changes yet for this order",
-    "statusSaved": "Status saved successfully"
+    "statusSaved": "Status saved successfully",
+    "editOrder": "Edit order",
+    "orderUpdated": "Order updated successfully",
+    "orderMustHaveItems": "Order must contain at least one item"
   },
   "maintenance": {
     "title": "Improving for you",

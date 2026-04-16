@@ -5,6 +5,7 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Chip, Dialog, DialogTitle, DialogContent, DialogActions, Button, MenuItem, TextField,
   IconButton, Tooltip, Divider, Collapse, CircularProgress, Snackbar, Alert,
+  ToggleButton, ToggleButtonGroup, Autocomplete,
 } from '@mui/material';
 import PrintIcon from '@mui/icons-material/Print';
 import ReceiptIcon from '@mui/icons-material/Receipt';
@@ -12,7 +13,23 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import HistoryIcon from '@mui/icons-material/History';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import PersonIcon from '@mui/icons-material/Person';
-import { adminApi, OrderDto, OrderStatusHistoryDto } from '../../services/api';
+import EditIcon from '@mui/icons-material/Edit';
+import CloseIcon from '@mui/icons-material/Close';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
+import DeleteOutlineIcon from '@mui/icons-material/Delete';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import StorefrontIcon from '@mui/icons-material/Storefront';
+import { adminApi, OrderDto, OrderStatusHistoryDto, ProductDto, ShippingMethod } from '../../services/api';
+
+interface EditItem {
+  productId?: number;
+  packageId?: number;
+  nameHe: string;
+  nameEn: string;
+  quantity: number;
+  unitPrice: number;
+}
 
 const STATUSES = ['Pending', 'Paid', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
 
@@ -40,6 +57,18 @@ export default function AdminOrdersPage() {
     severity: 'success',
     message: '',
   });
+
+  // Edit mode state
+  const [editMode, setEditMode] = useState(false);
+  const [editShippingMethod, setEditShippingMethod] = useState<ShippingMethod>('Delivery');
+  const [editAddress, setEditAddress] = useState('');
+  const [editCity, setEditCity] = useState('');
+  const [editNotes, setEditNotes] = useState('');
+  const [editItems, setEditItems] = useState<EditItem[]>([]);
+  const [products, setProducts] = useState<ProductDto[]>([]);
+  const [productToAdd, setProductToAdd] = useState<ProductDto | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+
   const printRef = useRef<HTMLDivElement>(null);
 
   const load = () => { adminApi.getOrders().then(setOrders); };
@@ -51,7 +80,112 @@ export default function AdminOrdersPage() {
     setDialogOpen(true);
     setHistoryOpen(false);
     setHistory([]);
+    setEditMode(false);
   };
+
+  const openEditMode = async () => {
+    if (!selectedOrder) return;
+    setEditShippingMethod(selectedOrder.shippingMethod || 'Delivery');
+    setEditAddress(selectedOrder.shippingAddress || '');
+    setEditCity(selectedOrder.city || '');
+    setEditNotes(selectedOrder.notes || '');
+    setEditItems(
+      selectedOrder.items.map((it) => ({
+        productId: it.productId,
+        packageId: it.packageId,
+        nameHe: it.nameHe,
+        nameEn: it.nameEn,
+        quantity: it.quantity,
+        unitPrice: it.unitPrice,
+      }))
+    );
+    setProductToAdd(null);
+    setEditMode(true);
+    if (products.length === 0) {
+      try {
+        setProducts(await adminApi.getProducts());
+      } catch {
+        // Leave products empty; user can still edit quantities
+      }
+    }
+  };
+
+  const cancelEditMode = () => {
+    setEditMode(false);
+  };
+
+  const changeItemQty = (index: number, delta: number) => {
+    setEditItems((prev) => {
+      const next = [...prev];
+      const newQty = next[index].quantity + delta;
+      if (newQty <= 0) {
+        next.splice(index, 1);
+      } else {
+        next[index] = { ...next[index], quantity: newQty };
+      }
+      return next;
+    });
+  };
+
+  const removeItem = (index: number) => {
+    setEditItems((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const addProductItem = () => {
+    if (!productToAdd) return;
+    setEditItems((prev) => {
+      const existing = prev.findIndex((it) => it.productId === productToAdd.id);
+      if (existing >= 0) {
+        const next = [...prev];
+        next[existing] = { ...next[existing], quantity: next[existing].quantity + 1 };
+        return next;
+      }
+      return [
+        ...prev,
+        {
+          productId: productToAdd.id,
+          packageId: undefined,
+          nameHe: productToAdd.nameHe,
+          nameEn: productToAdd.nameEn,
+          quantity: 1,
+          unitPrice: productToAdd.price,
+        },
+      ];
+    });
+    setProductToAdd(null);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedOrder) return;
+    if (editItems.length === 0) {
+      setSnack({ open: true, severity: 'error', message: t('admin.orderMustHaveItems') });
+      return;
+    }
+    setSavingEdit(true);
+    try {
+      const updated = await adminApi.updateOrder(selectedOrder.id, {
+        shippingMethod: editShippingMethod,
+        shippingAddress: editShippingMethod === 'Pickup' ? undefined : editAddress,
+        city: editShippingMethod === 'Pickup' ? undefined : editCity,
+        notes: editNotes || undefined,
+        items: editItems.map((it) => ({
+          productId: it.productId,
+          packageId: it.packageId,
+          quantity: it.quantity,
+        })),
+      });
+      setSelectedOrder(updated);
+      setEditMode(false);
+      setSnack({ open: true, severity: 'success', message: t('admin.orderUpdated') });
+      load();
+    } catch {
+      setSnack({ open: true, severity: 'error', message: t('common.error') });
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const editTotal = editItems.reduce((sum, it) => sum + it.unitPrice * it.quantity, 0);
 
   const handleUpdateStatus = async () => {
     if (!selectedOrder) return;
@@ -218,35 +352,57 @@ export default function AdminOrdersPage() {
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span>הזמנה #{selectedOrder?.id}</span>
+          <span>הזמנה #{selectedOrder?.id}{editMode ? ` — ${t('admin.editOrder')}` : ''}</span>
           <Box>
-            <Tooltip title={t('admin.statusHistory')}>
-              <IconButton
-                onClick={toggleHistory}
-                color={historyOpen ? 'primary' : 'default'}
-                sx={historyOpen ? { backgroundColor: 'primary.light', color: 'primary.contrastText' } : {}}
-              >
-                <HistoryIcon />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title={t('admin.printOrder')}>
-              <IconButton onClick={handlePrint} color="primary"><PrintIcon /></IconButton>
-            </Tooltip>
-            <Tooltip title={t('admin.downloadReceipt')}>
-              <IconButton onClick={handleDownloadReceipt} color="success"><ReceiptIcon /></IconButton>
-            </Tooltip>
-            <Tooltip title={t('admin.downloadInvoice')}>
-              <IconButton onClick={handleDownloadInvoice} color="info"><DescriptionIcon /></IconButton>
-            </Tooltip>
+            {!editMode && (
+              <>
+                <Tooltip title={t('admin.editOrder')}>
+                  <IconButton onClick={openEditMode} color="primary"><EditIcon /></IconButton>
+                </Tooltip>
+                <Tooltip title={t('admin.statusHistory')}>
+                  <IconButton
+                    onClick={toggleHistory}
+                    color={historyOpen ? 'primary' : 'default'}
+                    sx={historyOpen ? { backgroundColor: 'primary.light', color: 'primary.contrastText' } : {}}
+                  >
+                    <HistoryIcon />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title={t('admin.printOrder')}>
+                  <IconButton onClick={handlePrint} color="primary"><PrintIcon /></IconButton>
+                </Tooltip>
+                <Tooltip title={t('admin.downloadReceipt')}>
+                  <IconButton onClick={handleDownloadReceipt} color="success"><ReceiptIcon /></IconButton>
+                </Tooltip>
+                <Tooltip title={t('admin.downloadInvoice')}>
+                  <IconButton onClick={handleDownloadInvoice} color="info"><DescriptionIcon /></IconButton>
+                </Tooltip>
+              </>
+            )}
+            {editMode && (
+              <Tooltip title={t('common.cancel')}>
+                <IconButton onClick={cancelEditMode}><CloseIcon /></IconButton>
+              </Tooltip>
+            )}
           </Box>
         </DialogTitle>
-        <DialogContent>
-          {selectedOrder && (
+        <DialogContent dividers>
+          {selectedOrder && !editMode && (
             <Box sx={{ mt: 1 }} ref={printRef}>
               <Typography><strong>{t('checkout.customerName')}:</strong> {selectedOrder.customerName}</Typography>
               <Typography><strong>{t('checkout.customerPhone')}:</strong> {selectedOrder.customerPhone}</Typography>
               {selectedOrder.customerEmail && <Typography><strong>{t('checkout.customerEmail')}:</strong> {selectedOrder.customerEmail}</Typography>}
-              {selectedOrder.shippingAddress && <Typography><strong>{t('checkout.shippingAddress')}:</strong> {selectedOrder.shippingAddress}</Typography>}
+              <Typography sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 0.5 }}>
+                <strong>{t('checkout.shippingMethod')}:</strong>
+                <Chip
+                  icon={selectedOrder.shippingMethod === 'Pickup' ? <StorefrontIcon /> : <LocalShippingIcon />}
+                  label={selectedOrder.shippingMethod === 'Pickup' ? t('checkout.pickup') : t('checkout.delivery')}
+                  size="small"
+                  color={selectedOrder.shippingMethod === 'Pickup' ? 'secondary' : 'primary'}
+                  variant="outlined"
+                />
+              </Typography>
+              {selectedOrder.shippingAddress && <Typography><strong>{t('checkout.shippingAddress')}:</strong> {selectedOrder.shippingAddress}{selectedOrder.city ? `, ${selectedOrder.city}` : ''}</Typography>}
               {selectedOrder.notes && <Typography><strong>{t('checkout.notes')}:</strong> {selectedOrder.notes}</Typography>}
 
               <Divider sx={{ my: 2 }} />
@@ -357,12 +513,186 @@ export default function AdminOrdersPage() {
               </Collapse>
             </Box>
           )}
+
+          {selectedOrder && editMode && (
+            <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
+                  {t('checkout.shippingMethod')}
+                </Typography>
+                <ToggleButtonGroup
+                  value={editShippingMethod}
+                  exclusive
+                  onChange={(_, v) => v && setEditShippingMethod(v)}
+                  fullWidth
+                  color="primary"
+                  size="small"
+                >
+                  <ToggleButton value="Delivery" sx={{ gap: 1, py: 1 }}>
+                    <LocalShippingIcon fontSize="small" />
+                    {t('checkout.delivery')}
+                  </ToggleButton>
+                  <ToggleButton value="Pickup" sx={{ gap: 1, py: 1 }}>
+                    <StorefrontIcon fontSize="small" />
+                    {t('checkout.pickup')}
+                  </ToggleButton>
+                </ToggleButtonGroup>
+              </Box>
+
+              {editShippingMethod === 'Delivery' ? (
+                <>
+                  <TextField
+                    label={t('checkout.shippingAddress')}
+                    fullWidth
+                    value={editAddress}
+                    onChange={(e) => setEditAddress(e.target.value)}
+                  />
+                  <TextField
+                    label={t('checkout.city')}
+                    fullWidth
+                    value={editCity}
+                    onChange={(e) => setEditCity(e.target.value)}
+                  />
+                </>
+              ) : (
+                <Paper
+                  variant="outlined"
+                  sx={{
+                    p: 2,
+                    borderRadius: 2,
+                    backgroundColor: 'primary.light',
+                    color: 'primary.contrastText',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                  }}
+                >
+                  <StorefrontIcon />
+                  <Typography variant="body2">
+                    {t('checkout.pickupAtStore')} — {t('store.address')}
+                  </Typography>
+                </Paper>
+              )}
+
+              <TextField
+                label={t('checkout.notes')}
+                fullWidth
+                multiline
+                rows={2}
+                value={editNotes}
+                onChange={(e) => setEditNotes(e.target.value)}
+              />
+
+              <Divider />
+
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
+                  {t('package.items')}
+                </Typography>
+
+                {editItems.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+                    {t('admin.orderMustHaveItems')}
+                  </Typography>
+                ) : (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {editItems.map((item, idx) => (
+                      <Paper
+                        key={idx}
+                        variant="outlined"
+                        sx={{
+                          p: 1.5,
+                          borderRadius: 2,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          flexWrap: 'wrap',
+                        }}
+                      >
+                        <Box sx={{ flexGrow: 1, minWidth: 160 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            {item.nameHe}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            ₪{item.unitPrice.toFixed(2)} × {item.quantity} = ₪{(item.unitPrice * item.quantity).toFixed(2)}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <IconButton
+                            size="small"
+                            onClick={() => changeItemQty(idx, -1)}
+                            sx={{ border: '1px solid', borderColor: 'divider' }}
+                          >
+                            <RemoveIcon fontSize="small" />
+                          </IconButton>
+                          <Typography sx={{ minWidth: 24, textAlign: 'center', fontWeight: 600 }}>
+                            {item.quantity}
+                          </Typography>
+                          <IconButton
+                            size="small"
+                            onClick={() => changeItemQty(idx, 1)}
+                            sx={{ border: '1px solid', borderColor: 'divider' }}
+                          >
+                            <AddIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton size="small" color="error" onClick={() => removeItem(idx)}>
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      </Paper>
+                    ))}
+                  </Box>
+                )}
+
+                <Box sx={{ display: 'flex', gap: 1, mt: 2, alignItems: 'center' }}>
+                  <Autocomplete
+                    sx={{ flexGrow: 1 }}
+                    size="small"
+                    options={products}
+                    value={productToAdd}
+                    onChange={(_, v) => setProductToAdd(v)}
+                    getOptionLabel={(o) => `${o.nameHe} — ₪${o.price.toFixed(2)}`}
+                    isOptionEqualToValue={(o, v) => o.id === v.id}
+                    renderInput={(params) => <TextField {...params} label={t('admin.addProduct')} />}
+                  />
+                  <Button
+                    variant="outlined"
+                    startIcon={<AddIcon />}
+                    disabled={!productToAdd}
+                    onClick={addProductItem}
+                  >
+                    {t('common.create')}
+                  </Button>
+                </Box>
+
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                    {t('common.total')}:
+                  </Typography>
+                  <Typography variant="h6" color="primary" sx={{ fontWeight: 700 }}>
+                    ₪{editTotal.toFixed(2)}
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          )}
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setDialogOpen(false)} disabled={saving}>{t('common.cancel')}</Button>
-          <Button onClick={handleUpdateStatus} variant="contained" disabled={saving}>
-            {saving ? t('checkout.processing') : t('common.save')}
-          </Button>
+          {editMode ? (
+            <>
+              <Button onClick={cancelEditMode} disabled={savingEdit}>{t('common.cancel')}</Button>
+              <Button onClick={handleSaveEdit} variant="contained" disabled={savingEdit}>
+                {savingEdit ? t('checkout.processing') : t('common.save')}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button onClick={() => setDialogOpen(false)} disabled={saving}>{t('common.cancel')}</Button>
+              <Button onClick={handleUpdateStatus} variant="contained" disabled={saving}>
+                {saving ? t('checkout.processing') : t('common.save')}
+              </Button>
+            </>
+          )}
         </DialogActions>
       </Dialog>
 

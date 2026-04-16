@@ -4,9 +4,15 @@ import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import {
   Container, Typography, Box, Button, TextField, Paper, Divider, Alert, Grid,
+  ToggleButton, ToggleButtonGroup,
 } from '@mui/material';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import StorefrontIcon from '@mui/icons-material/Storefront';
+import PhoneIcon from '@mui/icons-material/Phone';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import PlaceIcon from '@mui/icons-material/Place';
 import { useCartStore } from '../store/cartStore';
-import { ordersApi, CreateOrderDto } from '../services/api';
+import { ordersApi, CreateOrderDto, ShippingMethod } from '../services/api';
 
 interface FormData {
   customerName: string;
@@ -23,12 +29,15 @@ export default function CheckoutPage() {
   const { items, totalPrice, clearCart } = useCartStore();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [shippingMethod, setShippingMethod] = useState<ShippingMethod>('Delivery');
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>();
 
   if (items.length === 0) {
     return <Navigate to="/cart" />;
   }
+
+  const isPickup = shippingMethod === 'Pickup';
 
   const onSubmit = async (data: FormData) => {
     setSubmitting(true);
@@ -39,8 +48,9 @@ export default function CheckoutPage() {
         customerName: data.customerName,
         customerPhone: data.customerPhone,
         customerEmail: data.customerEmail || undefined,
-        shippingAddress: data.shippingAddress || undefined,
-        city: data.city || undefined,
+        shippingAddress: isPickup ? undefined : data.shippingAddress,
+        city: isPickup ? undefined : data.city,
+        shippingMethod,
         notes: data.notes || undefined,
         items: items.map((item) => ({
           productId: item.productId,
@@ -79,6 +89,38 @@ export default function CheckoutPage() {
           <Paper sx={{ p: 3, borderRadius: 3 }}>
             <form onSubmit={handleSubmit(onSubmit)}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                {/* Shipping method selector */}
+                <Box>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1.5 }}>
+                    {t('checkout.shippingMethod')}
+                  </Typography>
+                  <ToggleButtonGroup
+                    value={shippingMethod}
+                    exclusive
+                    onChange={(_, v) => v && setShippingMethod(v)}
+                    fullWidth
+                    color="primary"
+                    sx={{
+                      '& .MuiToggleButton-root': {
+                        py: 1.5,
+                        borderRadius: 2,
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        gap: 1,
+                      },
+                    }}
+                  >
+                    <ToggleButton value="Delivery">
+                      <LocalShippingIcon />
+                      {t('checkout.delivery')}
+                    </ToggleButton>
+                    <ToggleButton value="Pickup">
+                      <StorefrontIcon />
+                      {t('checkout.pickup')}
+                    </ToggleButton>
+                  </ToggleButtonGroup>
+                </Box>
+
                 <TextField
                   label={t('checkout.customerName')}
                   fullWidth
@@ -104,16 +146,62 @@ export default function CheckoutPage() {
                   helperText={errors.customerEmail && t('checkout.required')}
                   {...register('customerEmail', { required: true, pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ })}
                 />
-                <TextField
-                  label={t('checkout.shippingAddress')}
-                  fullWidth
-                  {...register('shippingAddress')}
-                />
-                <TextField
-                  label={t('checkout.city')}
-                  fullWidth
-                  {...register('city')}
-                />
+
+                {isPickup ? (
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 2.5,
+                      borderRadius: 2,
+                      border: '1px solid',
+                      borderColor: 'primary.light',
+                      backgroundColor: 'primary.light',
+                      color: 'primary.contrastText',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 1.2,
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <StorefrontIcon />
+                      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                        {t('checkout.pickupAtStore')}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, opacity: 0.95 }}>
+                      <PlaceIcon fontSize="small" />
+                      <Typography variant="body2">{t('store.address')}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, opacity: 0.95 }}>
+                      <AccessTimeIcon fontSize="small" />
+                      <Typography variant="body2">{t('store.hours')}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, opacity: 0.95 }}>
+                      <PhoneIcon fontSize="small" />
+                      <Typography variant="body2">{t('store.phone')}</Typography>
+                    </Box>
+                  </Paper>
+                ) : (
+                  <>
+                    <TextField
+                      label={t('checkout.shippingAddress')}
+                      fullWidth
+                      required
+                      error={!!errors.shippingAddress}
+                      helperText={errors.shippingAddress && t('checkout.required')}
+                      {...register('shippingAddress', { required: !isPickup })}
+                    />
+                    <TextField
+                      label={t('checkout.city')}
+                      fullWidth
+                      required
+                      error={!!errors.city}
+                      helperText={errors.city && t('checkout.required')}
+                      {...register('city', { required: !isPickup })}
+                    />
+                  </>
+                )}
+
                 <TextField
                   label={t('checkout.notes')}
                   fullWidth

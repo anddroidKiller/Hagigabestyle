@@ -70,7 +70,16 @@
     "notes": "הערות",
     "placeOrder": "בצע הזמנה",
     "processing": "מעבד...",
-    "required": "שדה חובה"
+    "required": "שדה חובה",
+    "shippingMethod": "שיטת משלוח",
+    "delivery": "משלוח עד הבית",
+    "pickup": "איסוף עצמי",
+    "pickupAtStore": "איסוף מהחנות"
+  },
+  "store": {
+    "address": "רחוב הרצל 25, תל אביב",
+    "hours": "ימים א'-ה' 09:00-19:00, ו' 09:00-14:00",
+    "phone": "03-1234567"
   },
   "orderConfirmation": {
     "title": "ההזמנה התקבלה!",
@@ -135,7 +144,10 @@
     "maintenanceDisabled": "מצב תחזוקה כובה — האתר חזר לפעילות",
     "statusHistory": "היסטוריית סטטוסים",
     "noHistory": "אין עדיין שינויי סטטוס להזמנה זו",
-    "statusSaved": "הסטטוס נשמר בהצלחה"
+    "statusSaved": "הסטטוס נשמר בהצלחה",
+    "editOrder": "ערוך הזמנה",
+    "orderUpdated": "ההזמנה עודכנה בהצלחה",
+    "orderMustHaveItems": "ההזמנה חייבת לכלול לפחות פריט אחד"
   },
   "maintenance": {
     "title": "משתפרים בשבילכם",

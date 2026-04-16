@@ -64,6 +64,7 @@ public class AppDbContext : DbContext
             entity.Property(e => e.CustomerPhone).IsRequired().HasMaxLength(20);
             entity.Property(e => e.TotalAmount).HasPrecision(10, 2);
             entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.ShippingMethod).HasConversion<string>().HasMaxLength(20);
         });
 
         modelBuilder.Entity<OrderItem>(entity =>

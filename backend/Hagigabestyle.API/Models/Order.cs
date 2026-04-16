@@ -8,6 +8,7 @@ public class Order
     public string? CustomerEmail { get; set; }
     public string? ShippingAddress { get; set; }
     public string? City { get; set; }
+    public ShippingMethod ShippingMethod { get; set; } = ShippingMethod.Delivery;
     public decimal TotalAmount { get; set; }
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
     public string? TranzilaTransactionId { get; set; }
@@ -25,4 +26,10 @@ public enum OrderStatus
     Shipped,
     Delivered,
     Cancelled
+}
+
+public enum ShippingMethod
+{
+    Pickup,
+    Delivery
 }

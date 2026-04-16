@@ -175,6 +175,22 @@ public class AdminController : ControllerBase
     }
 
     [Authorize(Roles = "Admin")]
+    [HttpPut("orders/{id}")]
+    public async Task<ActionResult<OrderDto>> UpdateOrder(int id, [FromBody] UpdateOrderDto dto)
+    {
+        try
+        {
+            var updated = await _orderService.UpdateAsync(id, dto);
+            if (updated == null) return NotFound();
+            return updated;
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [Authorize(Roles = "Admin")]
     [HttpGet("orders/{id}/receipt")]
     public async Task<IActionResult> GetOrderReceipt(int id)
     {

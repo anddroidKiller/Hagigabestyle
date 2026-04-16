@@ -10,6 +10,7 @@ public class OrderDto
     public string? CustomerEmail { get; set; }
     public string? ShippingAddress { get; set; }
     public string? City { get; set; }
+    public string ShippingMethod { get; set; } = "Delivery";
     public decimal TotalAmount { get; set; }
     public string Status { get; set; } = string.Empty;
     public string? Notes { get; set; }
@@ -34,6 +35,16 @@ public class CreateOrderDto
     public string? CustomerEmail { get; set; }
     public string? ShippingAddress { get; set; }
     public string? City { get; set; }
+    public ShippingMethod ShippingMethod { get; set; } = ShippingMethod.Delivery;
+    public string? Notes { get; set; }
+    public List<CreateOrderItemDto> Items { get; set; } = new();
+}
+
+public class UpdateOrderDto
+{
+    public string? ShippingAddress { get; set; }
+    public string? City { get; set; }
+    public ShippingMethod ShippingMethod { get; set; } = ShippingMethod.Delivery;
     public string? Notes { get; set; }
     public List<CreateOrderItemDto> Items { get; set; } = new();
 }
