@@ -120,6 +120,16 @@ export interface SiteSettingsDto {
   updatedAt: string;
 }
 
+export interface OrderStatusHistoryDto {
+  id: number;
+  orderId: number;
+  oldStatus: string;
+  newStatus: string;
+  changedByUsername: string;
+  changedByFullName: string;
+  changedAt: string;
+}
+
 // Public API
 export const categoriesApi = {
   getAll: () => api.get<CategoryDto[]>('/categories').then(r => r.data),
@@ -171,6 +181,8 @@ export const adminApi = {
   getOrders: () => api.get<OrderDto[]>('/admin/orders').then(r => r.data),
   getOrder: (id: number) => api.get<OrderDto>(`/admin/orders/${id}`).then(r => r.data),
   updateOrderStatus: (id: number, status: string) => api.put(`/admin/orders/${id}/status`, { status }),
+  getOrderHistory: (id: number) =>
+    api.get<OrderStatusHistoryDto[]>(`/admin/orders/${id}/history`).then(r => r.data),
   getOrderReceipt: (id: number) => api.get(`/admin/orders/${id}/receipt`, { responseType: 'blob' }).then(r => r.data as Blob),
   getOrderInvoice: (id: number) => api.get(`/admin/orders/${id}/invoice`, { responseType: 'blob' }).then(r => r.data as Blob),
 

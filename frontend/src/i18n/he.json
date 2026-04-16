@@ -132,7 +132,10 @@
     "maintenanceTooltipOn": "האתר במצב תחזוקה ומוצג דף 'משתפרים בשבילכם' לגולשים. לחץ לכיבוי.",
     "maintenanceTooltipOff": "הפעל מצב תחזוקה — האתר יוצג כסגור לגולשים",
     "maintenanceEnabled": "מצב תחזוקה הופעל — האתר מוצג כסגור לגולשים",
-    "maintenanceDisabled": "מצב תחזוקה כובה — האתר חזר לפעילות"
+    "maintenanceDisabled": "מצב תחזוקה כובה — האתר חזר לפעילות",
+    "statusHistory": "היסטוריית סטטוסים",
+    "noHistory": "אין עדיין שינויי סטטוס להזמנה זו",
+    "statusSaved": "הסטטוס נשמר בהצלחה"
   },
   "maintenance": {
     "title": "משתפרים בשבילכם",

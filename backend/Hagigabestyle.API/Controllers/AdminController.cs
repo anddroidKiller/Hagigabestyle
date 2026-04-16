@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Hagigabestyle.API.DTOs;
@@ -160,7 +161,17 @@ public class AdminController : ControllerBase
     [HttpPut("orders/{id}/status")]
     public async Task<IActionResult> UpdateOrderStatus(int id, [FromBody] UpdateOrderStatusDto dto)
     {
-        return await _orderService.UpdateStatusAsync(id, dto.Status) ? NoContent() : NotFound();
+        var username = User.Identity?.Name ?? "unknown";
+        var fullName = User.FindFirstValue(ClaimTypes.GivenName) ?? username;
+        var ok = await _orderService.UpdateStatusAsync(id, dto.Status, username, fullName);
+        return ok ? NoContent() : NotFound();
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("orders/{id}/history")]
+    public async Task<ActionResult<List<OrderStatusHistoryDto>>> GetOrderHistory(int id)
+    {
+        return await _orderService.GetStatusHistoryAsync(id);
     }
 
     [Authorize(Roles = "Admin")]

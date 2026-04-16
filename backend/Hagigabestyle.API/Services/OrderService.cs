@@ -87,14 +87,50 @@ public class OrderService
             .FirstOrDefaultAsync();
     }
 
-    public async Task<bool> UpdateStatusAsync(int id, OrderStatus status)
+    public async Task<bool> UpdateStatusAsync(int id, OrderStatus status, string username, string fullName)
     {
         var order = await _db.Orders.FindAsync(id);
         if (order == null) return false;
 
+        var oldStatus = order.Status;
+        if (oldStatus == status)
+        {
+            // No change — nothing to record
+            return true;
+        }
+
         order.Status = status;
+
+        _db.OrderStatusHistories.Add(new OrderStatusHistory
+        {
+            OrderId = order.Id,
+            OldStatus = oldStatus,
+            NewStatus = status,
+            ChangedByUsername = username,
+            ChangedByFullName = fullName,
+            ChangedAt = DateTime.UtcNow,
+        });
+
         await _db.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<List<OrderStatusHistoryDto>> GetStatusHistoryAsync(int orderId)
+    {
+        return await _db.OrderStatusHistories
+            .Where(h => h.OrderId == orderId)
+            .OrderByDescending(h => h.ChangedAt)
+            .Select(h => new OrderStatusHistoryDto
+            {
+                Id = h.Id,
+                OrderId = h.OrderId,
+                OldStatus = h.OldStatus.ToString(),
+                NewStatus = h.NewStatus.ToString(),
+                ChangedByUsername = h.ChangedByUsername,
+                ChangedByFullName = h.ChangedByFullName,
+                ChangedAt = h.ChangedAt,
+            })
+            .ToListAsync();
     }
 
     public async Task<DashboardDto> GetDashboardAsync()

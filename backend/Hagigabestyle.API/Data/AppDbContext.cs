@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<AdminUser> AdminUsers => Set<AdminUser>();
     public DbSet<SiteSettings> SiteSettings => Set<SiteSettings>();
+    public DbSet<OrderStatusHistory> OrderStatusHistories => Set<OrderStatusHistory>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -93,6 +94,20 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).ValueGeneratedNever();
+        });
+
+        modelBuilder.Entity<OrderStatusHistory>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.OldStatus).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.NewStatus).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.ChangedByUsername).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.ChangedByFullName).HasMaxLength(200);
+            entity.HasOne(e => e.Order)
+                  .WithMany()
+                  .HasForeignKey(e => e.OrderId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(e => new { e.OrderId, e.ChangedAt });
         });
 
         SeedData(modelBuilder);

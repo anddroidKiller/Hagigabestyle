@@ -4,12 +4,15 @@ import {
   Typography, Box, Paper,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Chip, Dialog, DialogTitle, DialogContent, DialogActions, Button, MenuItem, TextField,
-  IconButton, Tooltip, Divider,
+  IconButton, Tooltip, Divider, Collapse, CircularProgress, Snackbar, Alert,
 } from '@mui/material';
 import PrintIcon from '@mui/icons-material/Print';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import DescriptionIcon from '@mui/icons-material/Description';
-import { adminApi, OrderDto } from '../../services/api';
+import HistoryIcon from '@mui/icons-material/History';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import PersonIcon from '@mui/icons-material/Person';
+import { adminApi, OrderDto, OrderStatusHistoryDto } from '../../services/api';
 
 const STATUSES = ['Pending', 'Paid', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
 
@@ -23,11 +26,20 @@ function downloadBlob(blob: Blob, filename: string) {
 }
 
 export default function AdminOrdersPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [orders, setOrders] = useState<OrderDto[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<OrderDto | null>(null);
   const [newStatus, setNewStatus] = useState('');
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [history, setHistory] = useState<OrderStatusHistoryDto[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [snack, setSnack] = useState<{ open: boolean; severity: 'success' | 'error'; message: string }>({
+    open: false,
+    severity: 'success',
+    message: '',
+  });
   const printRef = useRef<HTMLDivElement>(null);
 
   const load = () => { adminApi.getOrders().then(setOrders); };
@@ -37,14 +49,52 @@ export default function AdminOrdersPage() {
     setSelectedOrder(order);
     setNewStatus(order.status);
     setDialogOpen(true);
+    setHistoryOpen(false);
+    setHistory([]);
   };
 
   const handleUpdateStatus = async () => {
-    if (selectedOrder) {
+    if (!selectedOrder) return;
+    setSaving(true);
+    try {
       await adminApi.updateOrderStatus(selectedOrder.id, newStatus);
+      setSnack({ open: true, severity: 'success', message: t('admin.statusSaved') });
       setDialogOpen(false);
       load();
+    } catch {
+      setSnack({ open: true, severity: 'error', message: t('common.error') });
+    } finally {
+      setSaving(false);
     }
+  };
+
+  const toggleHistory = async () => {
+    if (!selectedOrder) return;
+    const next = !historyOpen;
+    setHistoryOpen(next);
+    if (next && history.length === 0) {
+      setHistoryLoading(true);
+      try {
+        const data = await adminApi.getOrderHistory(selectedOrder.id);
+        setHistory(data);
+      } catch {
+        setSnack({ open: true, severity: 'error', message: t('common.error') });
+      } finally {
+        setHistoryLoading(false);
+      }
+    }
+  };
+
+  const formatDateTime = (iso: string) => {
+    const d = new Date(iso);
+    const locale = i18n.language === 'he' ? 'he-IL' : 'en-US';
+    return d.toLocaleString(locale, {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
   const handlePrint = () => {
@@ -170,6 +220,15 @@ export default function AdminOrdersPage() {
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span>הזמנה #{selectedOrder?.id}</span>
           <Box>
+            <Tooltip title={t('admin.statusHistory')}>
+              <IconButton
+                onClick={toggleHistory}
+                color={historyOpen ? 'primary' : 'default'}
+                sx={historyOpen ? { backgroundColor: 'primary.light', color: 'primary.contrastText' } : {}}
+              >
+                <HistoryIcon />
+              </IconButton>
+            </Tooltip>
             <Tooltip title={t('admin.printOrder')}>
               <IconButton onClick={handlePrint} color="primary"><PrintIcon /></IconButton>
             </Tooltip>
@@ -210,14 +269,117 @@ export default function AdminOrdersPage() {
               >
                 {STATUSES.map(s => <MenuItem key={s} value={s}>{t(`admin.status.${s}`)}</MenuItem>)}
               </TextField>
+
+              <Collapse in={historyOpen} timeout="auto" unmountOnExit>
+                <Box
+                  sx={{
+                    mt: 3,
+                    p: 2,
+                    borderRadius: 2,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    backgroundColor: 'background.default',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                    <HistoryIcon color="primary" />
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                      {t('admin.statusHistory')}
+                    </Typography>
+                  </Box>
+
+                  {historyLoading ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+                      <CircularProgress size={28} />
+                    </Box>
+                  ) : history.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                      {t('admin.noHistory')}
+                    </Typography>
+                  ) : (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                      {history.map((h, idx) => (
+                        <Box
+                          key={h.id}
+                          sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 0.75,
+                            p: 1.5,
+                            borderRadius: 1.5,
+                            backgroundColor: 'background.paper',
+                            borderInlineStart: '3px solid',
+                            borderInlineStartColor: idx === 0 ? 'primary.main' : 'divider',
+                            boxShadow: idx === 0 ? 2 : 0,
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                            <Chip
+                              label={t(`admin.status.${h.oldStatus}`)}
+                              size="small"
+                              color={statusColor[h.oldStatus] || 'default'}
+                              variant="outlined"
+                            />
+                            <ArrowForwardIcon
+                              fontSize="small"
+                              sx={{
+                                color: 'text.secondary',
+                                transform: i18n.language === 'he' ? 'scaleX(-1)' : 'none',
+                              }}
+                            />
+                            <Chip
+                              label={t(`admin.status.${h.newStatus}`)}
+                              size="small"
+                              color={statusColor[h.newStatus] || 'default'}
+                            />
+                          </Box>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <PersonIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+                              <Typography variant="caption" color="text.secondary">
+                                {h.changedByFullName || h.changedByUsername}
+                                {h.changedByUsername && h.changedByFullName && (
+                                  <Box component="span" sx={{ opacity: 0.6, ml: 0.5 }}>
+                                    ({h.changedByUsername})
+                                  </Box>
+                                )}
+                              </Typography>
+                            </Box>
+                            <Typography variant="caption" color="text.secondary">
+                              {formatDateTime(h.changedAt)}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      ))}
+                    </Box>
+                  )}
+                </Box>
+              </Collapse>
             </Box>
           )}
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setDialogOpen(false)}>{t('common.cancel')}</Button>
-          <Button onClick={handleUpdateStatus} variant="contained">{t('common.save')}</Button>
+          <Button onClick={() => setDialogOpen(false)} disabled={saving}>{t('common.cancel')}</Button>
+          <Button onClick={handleUpdateStatus} variant="contained" disabled={saving}>
+            {saving ? t('checkout.processing') : t('common.save')}
+          </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={snack.open}
+        autoHideDuration={3500}
+        onClose={() => setSnack((s) => ({ ...s, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          severity={snack.severity}
+          variant="filled"
+          onClose={() => setSnack((s) => ({ ...s, open: false }))}
+        >
+          {snack.message}
+        </Alert>
+      </Snackbar>
     </>
   );
 }

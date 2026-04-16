@@ -32,7 +32,7 @@ public class PaymentsController : ControllerBase
         if (callbackData.TryGetValue("orderId", out var orderIdStr) && int.TryParse(orderIdStr, out var orderId))
         {
             var newStatus = isSuccess ? OrderStatus.Paid : OrderStatus.Cancelled;
-            await _orderService.UpdateStatusAsync(orderId, newStatus);
+            await _orderService.UpdateStatusAsync(orderId, newStatus, "system:tranzila", "Tranzila Callback");
 
             if (isSuccess && callbackData.TryGetValue("ConfirmationCode", out var confirmationCode))
             {

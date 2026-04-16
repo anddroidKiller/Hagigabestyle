@@ -132,7 +132,10 @@
     "maintenanceTooltipOn": "Site is in maintenance mode. Click to turn off.",
     "maintenanceTooltipOff": "Enable maintenance mode — customers will see a temporary page.",
     "maintenanceEnabled": "Maintenance mode enabled — the store is shown as closed to customers",
-    "maintenanceDisabled": "Maintenance mode disabled — the store is back online"
+    "maintenanceDisabled": "Maintenance mode disabled — the store is back online",
+    "statusHistory": "Status history",
+    "noHistory": "No status changes yet for this order",
+    "statusSaved": "Status saved successfully"
   },
   "maintenance": {
     "title": "Improving for you",
