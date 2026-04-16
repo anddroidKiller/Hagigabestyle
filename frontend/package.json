@@ -16,6 +16,7 @@
     "@fontsource/rubik": "^5.2.8",
     "@mui/icons-material": "^9.0.0",
     "@mui/material": "^9.0.0",
+    "@zxing/browser": "^0.1.5",
     "axios": "^1.15.0",
     "i18next": "^26.0.4",
     "i18next-browser-languagedetector": "^8.2.1",

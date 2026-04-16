@@ -40,7 +40,6 @@ export interface ProductDto {
   stockQuantity: number;
   isActive: boolean;
 }
-
 export interface PackageDto {
   id: number;
   nameHe: string;

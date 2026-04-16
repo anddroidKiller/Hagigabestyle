@@ -11,7 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
-    .WriteTo.Console()
+    .Enrich.FromLogContext()
     .CreateLogger();
 
 builder.Host.UseSerilog();
@@ -142,6 +142,10 @@ var app = builder.Build();
 
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors("AllowFrontend");
+app.UseSerilogRequestLogging(options =>
+{
+    options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+});
 
 // Static files must come before auth/routing
 app.UseDefaultFiles();
@@ -152,6 +156,8 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapFallbackToFile("index.html");
 
-Log.Information("App starting on port {Port}", Environment.GetEnvironmentVariable("PORT") ?? "5000");
 var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [STARTUP] Hagigabestyle API — Serilog + stdout. Port {port}");
+Console.Out.Flush();
+Log.Information("App starting on port {Port}", port);
 app.Run($"http://0.0.0.0:{port}");

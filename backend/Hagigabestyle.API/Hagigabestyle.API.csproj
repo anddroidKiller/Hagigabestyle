@@ -4,6 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>hagigabestyle-api-7f3c2a1b-9d4e-4c8f-b2a6-1e5d8c9f0a3b</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
