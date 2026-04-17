@@ -4,6 +4,9 @@ dist/
 dist-ssr/
 *.local
 
+# Local temp files
+.commit-msg.tmp
+
 # .NET
 bin/
 obj/

@@ -1,4 +1,0 @@
-Update business address and phone to real values
-
-- appsettings.json: set business Address and Phone to the real store details
-- Sync store.address/phone in he.json/en.json so the checkout pickup page shows matching info
