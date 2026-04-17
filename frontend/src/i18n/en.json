@@ -77,9 +77,9 @@
     "pickupAtStore": "Pickup at store"
   },
   "store": {
-    "address": "25 Herzl St., Tel Aviv",
+    "address": "Shlom HaGalil 8, Nahariya",
     "hours": "Sun-Thu 09:00-19:00, Fri 09:00-14:00",
-    "phone": "03-1234567"
+    "phone": "055-660-8856"
   },
   "orderConfirmation": {
     "title": "Order Received!",
