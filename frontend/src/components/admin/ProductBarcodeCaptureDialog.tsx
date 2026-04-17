@@ -9,6 +9,8 @@ import {
   Typography,
   Stack,
   Alert,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { BrowserMultiFormatReader } from "@zxing/browser";
@@ -22,6 +24,8 @@ type Props = {
 
 export default function ProductBarcodeCaptureDialog({ open, onClose, onBarcode, onSkip }: Props) {
   const { t } = useTranslation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsRef = useRef<{ stop: () => void } | null>(null);
   const doneRef = useRef(false);
@@ -118,9 +122,9 @@ export default function ProductBarcodeCaptureDialog({ open, onClose, onBarcode, 
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" fullScreen={isMobile}>
       <DialogTitle>{t("admin.productCaptureTitle")}</DialogTitle>
-      <DialogContent>
+      <DialogContent dividers>
         <Stack spacing={2} sx={{ mt: 1 }}>
           <Typography variant="body2" color="text.secondary">
             {t("admin.productCaptureHint")}
@@ -136,7 +140,7 @@ export default function ProductBarcodeCaptureDialog({ open, onClose, onBarcode, 
               bgcolor: "grey.900",
               borderRadius: 2,
               overflow: "hidden",
-              minHeight: 220,
+              minHeight: { xs: 260, sm: 220 },
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -146,7 +150,11 @@ export default function ProductBarcodeCaptureDialog({ open, onClose, onBarcode, 
               ref={videoRef}
               muted
               playsInline
-              style={{ width: "100%", maxHeight: 320, objectFit: "contain" }}
+              style={{
+                width: "100%",
+                maxHeight: isMobile ? "60vh" : 320,
+                objectFit: "contain",
+              }}
             />
             {!scanning && !cameraError && (
               <Typography
@@ -159,7 +167,7 @@ export default function ProductBarcodeCaptureDialog({ open, onClose, onBarcode, 
           </Box>
 
           <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>
-            <Button component="label" variant="outlined">
+            <Button component="label" variant="outlined" fullWidth={isMobile}>
               {t("admin.uploadBarcodeImage")}
               <input type="file" accept="image/*" hidden onChange={onPickFile} />
             </Button>

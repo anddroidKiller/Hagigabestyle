@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Typography, Button, Box, Paper,
+  Typography, Button, Box, Paper, Stack,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField,
   FormControlLabel, Switch, MenuItem, Chip,
   Backdrop, CircularProgress, Alert, Snackbar,
+  useMediaQuery, useTheme,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -16,6 +17,8 @@ import ProductBarcodeCaptureDialog from "../../components/admin/ProductBarcodeCa
 
 export default function AdminProductsPage() {
   const { t } = useTranslation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [products, setProducts] = useState<ProductDto[]>([]);
   const [categories, setCategories] = useState<CategoryDto[]>([]);
   const [captureOpen, setCaptureOpen] = useState(false);
@@ -165,58 +168,169 @@ export default function AdminProductsPage() {
         </Alert>
       </Snackbar>
 
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
+          justifyContent: "space-between",
+          alignItems: { xs: "stretch", sm: "center" },
+          gap: 2,
+          mb: 3,
+        }}
+      >
         <Typography variant="h4" sx={{ fontWeight: 700 }}>
           {t("admin.manageProducts")}
         </Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={openCreate}>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={openCreate}
+          fullWidth={isMobile}
+          size={isMobile ? "large" : "medium"}
+        >
           {t("admin.addProduct")}
         </Button>
       </Box>
 
-      <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>#</TableCell>
-              <TableCell>{t("admin.nameHe")}</TableCell>
-              <TableCell>{t("admin.nameEn")}</TableCell>
-              <TableCell>{t("common.price")}</TableCell>
-              <TableCell>{t("product.barcode")}</TableCell>
-              <TableCell>{t("product.category")}</TableCell>
-              <TableCell>{t("common.quantity")}</TableCell>
-              <TableCell>{t("admin.active")}</TableCell>
-              <TableCell></TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {products.map((p) => (
-              <TableRow key={p.id}>
-                <TableCell>{p.id}</TableCell>
-                <TableCell>{p.nameHe || <em style={{ opacity: 0.5 }}>ללא שם</em>}</TableCell>
-                <TableCell>{p.nameEn}</TableCell>
-                <TableCell>₪{p.price.toFixed(2)}</TableCell>
-                <TableCell>{p.barcode || "—"}</TableCell>
-                <TableCell>{p.categoryNameHe}</TableCell>
-                <TableCell>{p.stockQuantity}</TableCell>
-                <TableCell>
+      {isMobile ? (
+        <Stack spacing={1.5}>
+          {products.map((p) => (
+            <Paper
+              key={p.id}
+              elevation={1}
+              sx={{
+                p: 2,
+                borderRadius: 2,
+                display: "flex",
+                gap: 1.5,
+                alignItems: "flex-start",
+              }}
+            >
+              <Box
+                sx={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: 1.5,
+                  overflow: "hidden",
+                  flexShrink: 0,
+                  bgcolor: "background.default",
+                  border: (th) => `1px solid ${th.palette.divider}`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {p.imageUrl ? (
+                  <img
+                    src={p.imageUrl}
+                    alt={p.nameHe}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <Typography variant="caption" color="text.secondary">#{p.id}</Typography>
+                )}
+              </Box>
+              <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2 }} noWrap>
+                  {p.nameHe || <em style={{ opacity: 0.5 }}>ללא שם</em>}
+                </Typography>
+                {p.nameEn && (
+                  <Typography variant="caption" color="text.secondary" noWrap sx={{ display: "block" }}>
+                    {p.nameEn}
+                  </Typography>
+                )}
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, mt: 0.75, alignItems: "center" }}>
+                  <Chip
+                    label={`₪${p.price.toFixed(2)}`}
+                    size="small"
+                    color="primary"
+                    sx={{ fontWeight: 600 }}
+                  />
+                  <Chip
+                    label={`${t("common.quantity")}: ${p.stockQuantity}`}
+                    size="small"
+                    variant="outlined"
+                  />
                   <Chip
                     label={p.isActive ? t("admin.active") : t("admin.inactive")}
                     color={p.isActive ? "success" : "default"}
                     size="small"
                   />
-                </TableCell>
-                <TableCell>
-                  <IconButton onClick={() => openEdit(p)} size="small"><EditIcon /></IconButton>
-                  <IconButton onClick={() => handleDelete(p.id)} size="small" color="error"><DeleteIcon /></IconButton>
-                </TableCell>
+                </Box>
+                <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.75 }}>
+                  {p.categoryNameHe}
+                  {p.barcode ? ` · ${p.barcode}` : ""}
+                </Typography>
+              </Box>
+              <Box sx={{ display: "flex", flexDirection: "column" }}>
+                <IconButton onClick={() => openEdit(p)} size="small"><EditIcon /></IconButton>
+                <IconButton onClick={() => handleDelete(p.id)} size="small" color="error"><DeleteIcon /></IconButton>
+              </Box>
+            </Paper>
+          ))}
+          {products.length === 0 && (
+            <Paper sx={{ p: 3, textAlign: "center", borderRadius: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                {t("common.noResults")}
+              </Typography>
+            </Paper>
+          )}
+        </Stack>
+      ) : (
+        <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>#</TableCell>
+                <TableCell>{t("admin.nameHe")}</TableCell>
+                <TableCell>{t("admin.nameEn")}</TableCell>
+                <TableCell>{t("common.price")}</TableCell>
+                <TableCell>{t("product.barcode")}</TableCell>
+                <TableCell>{t("product.category")}</TableCell>
+                <TableCell>{t("common.quantity")}</TableCell>
+                <TableCell>{t("admin.active")}</TableCell>
+                <TableCell></TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {products.map((p) => (
+                <TableRow key={p.id}>
+                  <TableCell>{p.id}</TableCell>
+                  <TableCell>{p.nameHe || <em style={{ opacity: 0.5 }}>ללא שם</em>}</TableCell>
+                  <TableCell>{p.nameEn}</TableCell>
+                  <TableCell>₪{p.price.toFixed(2)}</TableCell>
+                  <TableCell>{p.barcode || "—"}</TableCell>
+                  <TableCell>{p.categoryNameHe}</TableCell>
+                  <TableCell>{p.stockQuantity}</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={p.isActive ? t("admin.active") : t("admin.inactive")}
+                      color={p.isActive ? "success" : "default"}
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <IconButton onClick={() => openEdit(p)} size="small"><EditIcon /></IconButton>
+                    <IconButton onClick={() => handleDelete(p.id)} size="small" color="error"><DeleteIcon /></IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
 
-      <Dialog open={dialogOpen} onClose={closeProductDialog} maxWidth="sm" fullWidth scroll="paper">
+      <Dialog
+        open={dialogOpen}
+        onClose={closeProductDialog}
+        maxWidth="sm"
+        fullWidth
+        scroll="paper"
+        fullScreen={isMobile}
+      >
         <DialogTitle>{editing ? t("common.edit") : t("admin.addProduct")}</DialogTitle>
         <DialogContent>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
