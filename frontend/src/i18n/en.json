@@ -28,7 +28,9 @@
     "loading": "Loading...",
     "noResults": "No results found",
     "error": "An error occurred",
-    "success": "Operation completed successfully"
+    "success": "Operation completed successfully",
+    "adminPreviewBanner": "Site is in maintenance — you are browsing as admin (customers see the maintenance page)",
+    "backToAdmin": "Back to admin"
   },
   "home": {
     "heroTitle": "Hagiga BaStyle",
@@ -142,6 +144,7 @@
     "maintenanceTooltipOff": "Enable maintenance mode — customers will see a temporary page.",
     "maintenanceEnabled": "Maintenance mode enabled — the store is shown as closed to customers",
     "maintenanceDisabled": "Maintenance mode disabled — the store is back online",
+    "openSiteAsCustomer": "Open site in new tab (admin preview)",
     "statusHistory": "Status history",
     "noHistory": "No status changes yet for this order",
     "statusSaved": "Status saved successfully",

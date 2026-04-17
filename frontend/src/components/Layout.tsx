@@ -9,7 +9,10 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import TranslateIcon from '@mui/icons-material/Translate';
 import CloseIcon from '@mui/icons-material/Close';
+import BuildCircleIcon from '@mui/icons-material/BuildCircle';
 import { useCartStore } from '../store/cartStore';
+import { useAuthStore } from '../store/authStore';
+import { useSiteSettingsStore } from '../store/siteSettingsStore';
 
 export default function Layout() {
   const { t, i18n } = useTranslation();
@@ -18,6 +21,9 @@ export default function Layout() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = useState(false);
   const totalItems = useCartStore((s) => s.totalItems());
+  const isAdmin = useAuthStore((s) => s.isAuthenticated);
+  const isMaintenanceMode = useSiteSettingsStore((s) => s.isMaintenanceMode);
+  const showAdminPreviewBanner = isAdmin && isMaintenanceMode;
 
   const toggleLanguage = () => {
     const newLang = i18n.language === 'he' ? 'en' : 'he';
@@ -34,6 +40,42 @@ export default function Layout() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      {showAdminPreviewBanner && (
+        <Box
+          sx={{
+            position: 'sticky',
+            top: 0,
+            zIndex: (th) => th.zIndex.appBar + 1,
+            bgcolor: 'warning.main',
+            color: 'warning.contrastText',
+            px: 2,
+            py: 0.75,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 1.5,
+            flexWrap: 'wrap',
+            fontSize: 14,
+            fontWeight: 600,
+            boxShadow: 1,
+          }}
+        >
+          <BuildCircleIcon fontSize="small" />
+          <Typography variant="body2" sx={{ fontWeight: 700 }}>
+            {t('common.adminPreviewBanner')}
+          </Typography>
+          <Button
+            size="small"
+            variant="contained"
+            color="inherit"
+            onClick={() => navigate('/admin/dashboard')}
+            sx={{ color: 'warning.main', bgcolor: 'common.white', fontWeight: 700, py: 0.25 }}
+          >
+            {t('common.backToAdmin')}
+          </Button>
+        </Box>
+      )}
+
       <AppBar position="sticky" elevation={0}>
         <Container maxWidth="lg">
           <Toolbar disableGutters sx={{ gap: 1 }}>

@@ -9,6 +9,7 @@ import { prefixer } from 'stylis';
 import { useTranslation } from 'react-i18next';
 import { getTheme } from './styles/theme';
 import { useSiteSettingsStore } from './store/siteSettingsStore';
+import { useAuthStore } from './store/authStore';
 
 import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
@@ -48,6 +49,7 @@ export default function App() {
 
   const isMaintenanceMode = useSiteSettingsStore((s) => s.isMaintenanceMode);
   const fetchStatus = useSiteSettingsStore((s) => s.fetchStatus);
+  const isAdmin = useAuthStore((s) => s.isAuthenticated);
 
   useEffect(() => {
     fetchStatus();
@@ -56,7 +58,10 @@ export default function App() {
     return () => window.clearInterval(id);
   }, [fetchStatus]);
 
-  const customerRoutes = isMaintenanceMode ? (
+  // Logged-in admins can keep browsing the customer site even during maintenance
+  const maintenanceActive = isMaintenanceMode && !isAdmin;
+
+  const customerRoutes = maintenanceActive ? (
     <Route path="*" element={<MaintenancePage />} />
   ) : (
     <Route element={<Layout />}>

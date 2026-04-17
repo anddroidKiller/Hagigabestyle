@@ -14,6 +14,7 @@ import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
 import BuildCircleIcon from '@mui/icons-material/BuildCircle';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { useAuthStore } from '../../store/authStore';
 import { useSiteSettingsStore } from '../../store/siteSettingsStore';
 import { adminApi } from '../../services/api';
@@ -188,6 +189,12 @@ export default function AdminLayout() {
                   />
                 )}
               </Box>
+            </Tooltip>
+
+            <Tooltip title={t('admin.openSiteAsCustomer')} arrow>
+              <IconButton onClick={() => window.open('/', '_blank')} sx={{ mr: 0.5 }}>
+                <OpenInNewIcon />
+              </IconButton>
             </Tooltip>
 
             <IconButton onClick={logout} title={t('common.logout')}>
