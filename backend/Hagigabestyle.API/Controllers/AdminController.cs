@@ -111,6 +111,14 @@ public class AdminController : ControllerBase
         return await _productService.DeleteAsync(id) ? NoContent() : NotFound();
     }
 
+    [Authorize(Roles = "Admin")]
+    [HttpPatch("products/{id}/inventory")]
+    public async Task<ActionResult<ProductDto>> UpdateInventory(int id, [FromBody] UpdateInventoryDto dto)
+    {
+        var result = await _productService.UpdateInventoryAsync(id, dto);
+        return result == null ? NotFound() : Ok(result);
+    }
+
     // Packages CRUD
     [Authorize(Roles = "Admin")]
     [HttpGet("packages")]

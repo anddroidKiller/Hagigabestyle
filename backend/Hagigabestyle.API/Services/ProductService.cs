@@ -17,19 +17,19 @@ public class ProductService
         if (activeOnly) query = query.Where(p => p.IsActive);
         if (categoryId.HasValue) query = query.Where(p => p.CategoryId == categoryId.Value);
 
-        return await query
+        var products = await query
             .OrderByDescending(p => p.CreatedAt)
-            .Select(p => MapToDto(p))
             .ToListAsync();
+
+        return products.Select(MapToDto).ToList();
     }
 
     public async Task<ProductDto?> GetByIdAsync(int id)
     {
-        return await _db.Products
+        var product = await _db.Products
             .Include(p => p.Category)
-            .Where(p => p.Id == id)
-            .Select(p => MapToDto(p))
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(p => p.Id == id);
+        return product == null ? null : MapToDto(product);
     }
 
     public async Task<ProductDto> CreateAsync(CreateProductDto dto)
@@ -41,10 +41,12 @@ public class ProductService
             DescriptionHe = dto.DescriptionHe,
             DescriptionEn = dto.DescriptionEn,
             Price = dto.Price,
+            CostPrice = dto.CostPrice,
             Barcode = dto.Barcode,
             ImageUrl = dto.ImageUrl,
             CategoryId = dto.CategoryId,
-            StockQuantity = dto.StockQuantity,
+            StockQuantityStore = dto.StockQuantityStore,
+            StockQuantityWarehouse = dto.StockQuantityWarehouse,
             IsActive = dto.IsActive
         };
 
@@ -66,14 +68,28 @@ public class ProductService
         product.DescriptionHe = dto.DescriptionHe;
         product.DescriptionEn = dto.DescriptionEn;
         product.Price = dto.Price;
+        product.CostPrice = dto.CostPrice;
         product.Barcode = dto.Barcode;
         product.ImageUrl = dto.ImageUrl;
         product.CategoryId = dto.CategoryId;
-        product.StockQuantity = dto.StockQuantity;
+        product.StockQuantityStore = dto.StockQuantityStore;
+        product.StockQuantityWarehouse = dto.StockQuantityWarehouse;
         product.IsActive = dto.IsActive;
 
         await _db.SaveChangesAsync();
 
+        return MapToDto(product);
+    }
+
+    public async Task<ProductDto?> UpdateInventoryAsync(int id, UpdateInventoryDto dto)
+    {
+        var product = await _db.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id);
+        if (product == null) return null;
+
+        product.StockQuantityStore = Math.Max(0, dto.StockQuantityStore);
+        product.StockQuantityWarehouse = Math.Max(0, dto.StockQuantityWarehouse);
+
+        await _db.SaveChangesAsync();
         return MapToDto(product);
     }
 
@@ -87,20 +103,31 @@ public class ProductService
         return true;
     }
 
-    private static ProductDto MapToDto(Product p) => new()
+    private static ProductDto MapToDto(Product p)
     {
-        Id = p.Id,
-        NameHe = p.NameHe,
-        NameEn = p.NameEn,
-        DescriptionHe = p.DescriptionHe,
-        DescriptionEn = p.DescriptionEn,
-        Price = p.Price,
-        Barcode = p.Barcode,
-        ImageUrl = p.ImageUrl,
-        CategoryId = p.CategoryId,
-        CategoryNameHe = p.Category.NameHe,
-        CategoryNameEn = p.Category.NameEn,
-        StockQuantity = p.StockQuantity,
-        IsActive = p.IsActive
-    };
+        var total = p.StockQuantityStore + p.StockQuantityWarehouse;
+        var margin = p.Price > 0
+            ? Math.Round((p.Price - p.CostPrice) / p.Price * 100m, 2)
+            : 0m;
+        return new ProductDto
+        {
+            Id = p.Id,
+            NameHe = p.NameHe,
+            NameEn = p.NameEn,
+            DescriptionHe = p.DescriptionHe,
+            DescriptionEn = p.DescriptionEn,
+            Price = p.Price,
+            CostPrice = p.CostPrice,
+            Barcode = p.Barcode,
+            ImageUrl = p.ImageUrl,
+            CategoryId = p.CategoryId,
+            CategoryNameHe = p.Category.NameHe,
+            CategoryNameEn = p.Category.NameEn,
+            StockQuantityStore = p.StockQuantityStore,
+            StockQuantityWarehouse = p.StockQuantityWarehouse,
+            StockQuantity = total,
+            ProfitMargin = margin,
+            IsActive = p.IsActive
+        };
+    }
 }

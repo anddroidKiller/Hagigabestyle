@@ -32,8 +32,13 @@ export default function AdminProductsPage() {
   const [editing, setEditing] = useState<ProductDto | null>(null);
   const [form, setForm] = useState({
     nameHe: "", nameEn: "", descriptionHe: "", descriptionEn: "",
-    price: 0, barcode: "", imageUrl: "", categoryId: 0, stockQuantity: 0, isActive: true,
+    price: 0, costPrice: 0, barcode: "", imageUrl: "", categoryId: 0,
+    stockQuantityStore: 0, stockQuantityWarehouse: 0, isActive: true,
   });
+
+  const profitMargin = form.price > 0
+    ? ((form.price - form.costPrice) / form.price) * 100
+    : 0;
 
   const loadData = () => {
     adminApi.getProducts().then(setProducts);
@@ -64,10 +69,12 @@ export default function AdminProductsPage() {
         descriptionHe: "",
         descriptionEn: "",
         price: 0,
+        costPrice: 0,
         barcode: code,
         imageUrl: "",
         categoryId: defaultCategoryId,
-        stockQuantity: 0,
+        stockQuantityStore: 0,
+        stockQuantityWarehouse: 0,
         isActive: true,
       });
       showSnack(`המוצר נוסף עם ברקוד ${code}`, "success");
@@ -92,8 +99,9 @@ export default function AdminProductsPage() {
     setEditing(null);
     setForm({
       nameHe: "", nameEn: "", descriptionHe: "", descriptionEn: "",
-      price: 0, barcode: "", imageUrl: "",
-      categoryId: categories[0]?.id ?? 0, stockQuantity: 0, isActive: true,
+      price: 0, costPrice: 0, barcode: "", imageUrl: "",
+      categoryId: categories[0]?.id ?? 0,
+      stockQuantityStore: 0, stockQuantityWarehouse: 0, isActive: true,
     });
     setDialogOpen(true);
   };
@@ -103,8 +111,12 @@ export default function AdminProductsPage() {
     setForm({
       nameHe: p.nameHe, nameEn: p.nameEn,
       descriptionHe: p.descriptionHe || "", descriptionEn: p.descriptionEn || "",
-      price: p.price, barcode: p.barcode || "", imageUrl: p.imageUrl || "",
-      categoryId: p.categoryId, stockQuantity: p.stockQuantity, isActive: p.isActive,
+      price: p.price, costPrice: p.costPrice || 0,
+      barcode: p.barcode || "", imageUrl: p.imageUrl || "",
+      categoryId: p.categoryId,
+      stockQuantityStore: p.stockQuantityStore || 0,
+      stockQuantityWarehouse: p.stockQuantityWarehouse || 0,
+      isActive: p.isActive,
     });
     setDialogOpen(true);
   };
@@ -250,7 +262,12 @@ export default function AdminProductsPage() {
                     sx={{ fontWeight: 600 }}
                   />
                   <Chip
-                    label={`${t("common.quantity")}: ${p.stockQuantity}`}
+                    label={`${t("admin.stockStoreShort")}: ${p.stockQuantityStore ?? 0}`}
+                    size="small"
+                    variant="outlined"
+                  />
+                  <Chip
+                    label={`${t("admin.stockWarehouseShort")}: ${p.stockQuantityWarehouse ?? 0}`}
                     size="small"
                     variant="outlined"
                   />
@@ -287,10 +304,13 @@ export default function AdminProductsPage() {
                 <TableCell>#</TableCell>
                 <TableCell>{t("admin.nameHe")}</TableCell>
                 <TableCell>{t("admin.nameEn")}</TableCell>
-                <TableCell>{t("common.price")}</TableCell>
+                <TableCell>{t("admin.sellPrice")}</TableCell>
+                <TableCell>{t("admin.costPrice")}</TableCell>
+                <TableCell>{t("admin.profitMargin")}</TableCell>
                 <TableCell>{t("product.barcode")}</TableCell>
                 <TableCell>{t("product.category")}</TableCell>
-                <TableCell>{t("common.quantity")}</TableCell>
+                <TableCell>{t("admin.stockStoreShort")}</TableCell>
+                <TableCell>{t("admin.stockWarehouseShort")}</TableCell>
                 <TableCell>{t("admin.active")}</TableCell>
                 <TableCell></TableCell>
               </TableRow>
@@ -302,9 +322,19 @@ export default function AdminProductsPage() {
                   <TableCell>{p.nameHe || <em style={{ opacity: 0.5 }}>ללא שם</em>}</TableCell>
                   <TableCell>{p.nameEn}</TableCell>
                   <TableCell>₪{p.price.toFixed(2)}</TableCell>
+                  <TableCell>₪{(p.costPrice || 0).toFixed(2)}</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={`${(p.profitMargin ?? 0).toFixed(1)}%`}
+                      size="small"
+                      color={(p.profitMargin ?? 0) >= 20 ? "success" : (p.profitMargin ?? 0) > 0 ? "warning" : "error"}
+                      variant="outlined"
+                    />
+                  </TableCell>
                   <TableCell>{p.barcode || "—"}</TableCell>
                   <TableCell>{p.categoryNameHe}</TableCell>
-                  <TableCell>{p.stockQuantity}</TableCell>
+                  <TableCell>{p.stockQuantityStore ?? 0}</TableCell>
+                  <TableCell>{p.stockQuantityWarehouse ?? 0}</TableCell>
                   <TableCell>
                     <Chip
                       label={p.isActive ? t("admin.active") : t("admin.inactive")}
@@ -339,7 +369,33 @@ export default function AdminProductsPage() {
             <TextField label={t("admin.nameEn")} fullWidth value={form.nameEn} onChange={(e) => setForm({ ...form, nameEn: e.target.value })} />
             <TextField label={t("admin.descriptionHe")} fullWidth multiline rows={2} value={form.descriptionHe} onChange={(e) => setForm({ ...form, descriptionHe: e.target.value })} />
             <TextField label={t("admin.descriptionEn")} fullWidth multiline rows={2} value={form.descriptionEn} onChange={(e) => setForm({ ...form, descriptionEn: e.target.value })} />
-            <TextField label={t("common.price")} type="number" fullWidth value={form.price} onChange={(e) => setForm({ ...form, price: +e.target.value })} />
+            <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+              <TextField
+                label={t("admin.sellPrice")}
+                type="number"
+                sx={{ flex: "1 1 160px" }}
+                value={form.price}
+                onChange={(e) => setForm({ ...form, price: +e.target.value })}
+                slotProps={{ input: { startAdornment: <Box sx={{ mr: 0.5, color: "text.secondary" }}>₪</Box> } }}
+              />
+              <TextField
+                label={t("admin.costPrice")}
+                type="number"
+                sx={{ flex: "1 1 160px" }}
+                value={form.costPrice}
+                onChange={(e) => setForm({ ...form, costPrice: +e.target.value })}
+                slotProps={{ input: { startAdornment: <Box sx={{ mr: 0.5, color: "text.secondary" }}>₪</Box> } }}
+              />
+              <TextField
+                label={t("admin.profitMargin")}
+                sx={{ flex: "1 1 160px" }}
+                value={form.price > 0 ? `${profitMargin.toFixed(2)}%` : "—"}
+                slotProps={{ input: { readOnly: true } }}
+                helperText={t("admin.profitMarginHint")}
+                color={profitMargin >= 0 ? "success" : "error"}
+                focused
+              />
+            </Box>
             <TextField label={t("admin.imageUrl")} fullWidth value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} />
             {form.imageUrl && (
               <Box sx={{ display: "flex", justifyContent: "center" }}>
@@ -372,7 +428,28 @@ export default function AdminProductsPage() {
                 <MenuItem key={c.id} value={c.id}>{c.nameHe}</MenuItem>
               ))}
             </TextField>
-            <TextField label={t("common.quantity")} type="number" fullWidth value={form.stockQuantity} onChange={(e) => setForm({ ...form, stockQuantity: +e.target.value })} />
+            <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+              <TextField
+                label={t("admin.stockStore")}
+                type="number"
+                sx={{ flex: "1 1 160px" }}
+                value={form.stockQuantityStore}
+                onChange={(e) => setForm({ ...form, stockQuantityStore: +e.target.value })}
+              />
+              <TextField
+                label={t("admin.stockWarehouse")}
+                type="number"
+                sx={{ flex: "1 1 160px" }}
+                value={form.stockQuantityWarehouse}
+                onChange={(e) => setForm({ ...form, stockQuantityWarehouse: +e.target.value })}
+              />
+              <TextField
+                label={t("admin.stockTotal")}
+                sx={{ flex: "1 1 160px" }}
+                value={form.stockQuantityStore + form.stockQuantityWarehouse}
+                slotProps={{ input: { readOnly: true } }}
+              />
+            </Box>
             <FormControlLabel
               control={<Switch checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} />}
               label={t("admin.active")}

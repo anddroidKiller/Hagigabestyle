@@ -30,6 +30,7 @@ import AdminProductsPage from './pages/admin/AdminProductsPage';
 import AdminCategoriesPage from './pages/admin/AdminCategoriesPage';
 import AdminPackagesPage from './pages/admin/AdminPackagesPage';
 import AdminOrdersPage from './pages/admin/AdminOrdersPage';
+import AdminInventoryPage from './pages/admin/AdminInventoryPage';
 
 const rtlCache = createCache({
   key: 'muirtl',
@@ -88,6 +89,7 @@ export default function App() {
             <Route path="/admin" element={<AdminLayout />}>
               <Route path="dashboard" element={<DashboardPage />} />
               <Route path="products" element={<AdminProductsPage />} />
+              <Route path="inventory" element={<AdminInventoryPage />} />
               <Route path="categories" element={<AdminCategoriesPage />} />
               <Route path="packages" element={<AdminPackagesPage />} />
               <Route path="orders" element={<AdminOrdersPage />} />

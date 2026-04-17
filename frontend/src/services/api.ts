@@ -32,13 +32,24 @@ export interface ProductDto {
   descriptionHe?: string;
   descriptionEn?: string;
   price: number;
+  costPrice: number;
   barcode?: string;
   imageUrl?: string;
   categoryId: number;
   categoryNameHe: string;
   categoryNameEn: string;
+  stockQuantityStore: number;
+  stockQuantityWarehouse: number;
+  /** Total stock across store + warehouse (computed on backend) */
   stockQuantity: number;
+  /** Readonly profit margin percentage (computed on backend) */
+  profitMargin: number;
   isActive: boolean;
+}
+
+export interface UpdateInventoryDto {
+  stockQuantityStore: number;
+  stockQuantityWarehouse: number;
 }
 export interface PackageDto {
   id: number;
@@ -183,6 +194,8 @@ export const adminApi = {
     api.get<ProductDto[]>('/admin/products', { params: categoryId ? { categoryId } : {} }).then(r => r.data),
   createProduct: (data: Partial<ProductDto>) => api.post<ProductDto>('/admin/products', data).then(r => r.data),
   updateProduct: (id: number, data: Partial<ProductDto>) => api.put<ProductDto>(`/admin/products/${id}`, data).then(r => r.data),
+  updateInventory: (id: number, data: UpdateInventoryDto) =>
+    api.patch<ProductDto>(`/admin/products/${id}/inventory`, data).then(r => r.data),
   deleteProduct: (id: number) => api.delete(`/admin/products/${id}`),
 
   getPackages: () => api.get<PackageDto[]>('/admin/packages').then(r => r.data),

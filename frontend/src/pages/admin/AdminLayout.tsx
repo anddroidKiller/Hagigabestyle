@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import CategoryIcon from '@mui/icons-material/Category';
 import InventoryIcon from '@mui/icons-material/Inventory';
+import Inventory2Icon from '@mui/icons-material/Inventory2';
 import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -70,6 +71,7 @@ export default function AdminLayout() {
     { label: t('admin.dashboard'), path: '/admin/dashboard', icon: <DashboardIcon /> },
     { label: t('admin.manageCategories'), path: '/admin/categories', icon: <CategoryIcon /> },
     { label: t('admin.manageProducts'), path: '/admin/products', icon: <InventoryIcon /> },
+    { label: t('admin.manageInventory'), path: '/admin/inventory', icon: <Inventory2Icon /> },
     { label: t('admin.managePackages'), path: '/admin/packages', icon: <CardGiftcardIcon /> },
     { label: t('admin.manageOrders'), path: '/admin/orders', icon: <ShoppingBagIcon /> },
   ];
