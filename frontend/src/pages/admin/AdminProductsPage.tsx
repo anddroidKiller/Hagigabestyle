@@ -33,7 +33,9 @@ export default function AdminProductsPage() {
   const [form, setForm] = useState({
     nameHe: "", nameEn: "", descriptionHe: "", descriptionEn: "",
     price: 0, costPrice: 0, barcode: "", imageUrl: "", categoryId: 0,
-    stockQuantityStore: 0, stockQuantityWarehouse: 0, isActive: true,
+    stockQuantityStore: 0, stockQuantityWarehouse: 0,
+    locationStore: "", locationWarehouse: "",
+    isActive: true,
   });
 
   const profitMargin = form.price > 0
@@ -75,6 +77,8 @@ export default function AdminProductsPage() {
         categoryId: defaultCategoryId,
         stockQuantityStore: 0,
         stockQuantityWarehouse: 0,
+        locationStore: "",
+        locationWarehouse: "",
         isActive: true,
       });
       showSnack(`המוצר נוסף עם ברקוד ${code}`, "success");
@@ -101,7 +105,9 @@ export default function AdminProductsPage() {
       nameHe: "", nameEn: "", descriptionHe: "", descriptionEn: "",
       price: 0, costPrice: 0, barcode: "", imageUrl: "",
       categoryId: categories[0]?.id ?? 0,
-      stockQuantityStore: 0, stockQuantityWarehouse: 0, isActive: true,
+      stockQuantityStore: 0, stockQuantityWarehouse: 0,
+      locationStore: "", locationWarehouse: "",
+      isActive: true,
     });
     setDialogOpen(true);
   };
@@ -116,6 +122,8 @@ export default function AdminProductsPage() {
       categoryId: p.categoryId,
       stockQuantityStore: p.stockQuantityStore || 0,
       stockQuantityWarehouse: p.stockQuantityWarehouse || 0,
+      locationStore: p.locationStore || "",
+      locationWarehouse: p.locationWarehouse || "",
       isActive: p.isActive,
     });
     setDialogOpen(true);
@@ -448,6 +456,24 @@ export default function AdminProductsPage() {
                 sx={{ flex: "1 1 160px" }}
                 value={form.stockQuantityStore + form.stockQuantityWarehouse}
                 slotProps={{ input: { readOnly: true } }}
+              />
+            </Box>
+            <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+              <TextField
+                label={t("admin.locationStore")}
+                placeholder={t("admin.locationStorePlaceholder")}
+                sx={{ flex: "1 1 240px" }}
+                value={form.locationStore}
+                onChange={(e) => setForm({ ...form, locationStore: e.target.value })}
+                slotProps={{ htmlInput: { maxLength: 100 } }}
+              />
+              <TextField
+                label={t("admin.locationWarehouse")}
+                placeholder={t("admin.locationWarehousePlaceholder")}
+                sx={{ flex: "1 1 240px" }}
+                value={form.locationWarehouse}
+                onChange={(e) => setForm({ ...form, locationWarehouse: e.target.value })}
+                slotProps={{ htmlInput: { maxLength: 100 } }}
               />
             </Box>
             <FormControlLabel

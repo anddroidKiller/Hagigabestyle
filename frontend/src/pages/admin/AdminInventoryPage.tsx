@@ -16,6 +16,8 @@ import { adminApi, ProductDto } from "../../services/api";
 interface EditState {
   store: number;
   warehouse: number;
+  locationStore: string;
+  locationWarehouse: string;
 }
 
 const LOW_STOCK_THRESHOLD = 10;
@@ -49,20 +51,39 @@ export default function AdminInventoryPage() {
 
   useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
 
-  const getEdit = (p: ProductDto): EditState =>
-    edits[p.id] ?? { store: p.stockQuantityStore ?? 0, warehouse: p.stockQuantityWarehouse ?? 0 };
+  const baseEdit = (p: ProductDto): EditState => ({
+    store: p.stockQuantityStore ?? 0,
+    warehouse: p.stockQuantityWarehouse ?? 0,
+    locationStore: p.locationStore ?? "",
+    locationWarehouse: p.locationWarehouse ?? "",
+  });
+
+  const getEdit = (p: ProductDto): EditState => edits[p.id] ?? baseEdit(p);
 
   const isDirty = (p: ProductDto): boolean => {
     const e = edits[p.id];
     if (!e) return false;
-    return e.store !== (p.stockQuantityStore ?? 0) || e.warehouse !== (p.stockQuantityWarehouse ?? 0);
+    const b = baseEdit(p);
+    return (
+      e.store !== b.store ||
+      e.warehouse !== b.warehouse ||
+      e.locationStore !== b.locationStore ||
+      e.locationWarehouse !== b.locationWarehouse
+    );
   };
 
-  const setEditField = (p: ProductDto, field: keyof EditState, value: number) => {
+  const setEditQty = (p: ProductDto, field: "store" | "warehouse", value: number) => {
     const clamped = Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0;
     setEdits((prev) => {
-      const current = prev[p.id] ?? { store: p.stockQuantityStore ?? 0, warehouse: p.stockQuantityWarehouse ?? 0 };
+      const current = prev[p.id] ?? baseEdit(p);
       return { ...prev, [p.id]: { ...current, [field]: clamped } };
+    });
+  };
+
+  const setEditLocation = (p: ProductDto, field: "locationStore" | "locationWarehouse", value: string) => {
+    setEdits((prev) => {
+      const current = prev[p.id] ?? baseEdit(p);
+      return { ...prev, [p.id]: { ...current, [field]: value.slice(0, 100) } };
     });
   };
 
@@ -74,6 +95,8 @@ export default function AdminInventoryPage() {
       const updated = await adminApi.updateInventory(p.id, {
         stockQuantityStore: e.store,
         stockQuantityWarehouse: e.warehouse,
+        locationStore: e.locationStore.trim() || undefined,
+        locationWarehouse: e.locationWarehouse.trim() || undefined,
       });
       setProducts((prev) => prev.map((x) => (x.id === p.id ? updated : x)));
       setEdits((prev) => {
@@ -110,7 +133,7 @@ export default function AdminInventoryPage() {
       });
   }, [products, search]);
 
-  const renderQtyField = (p: ProductDto, field: keyof EditState, label: string) => {
+  const renderQtyField = (p: ProductDto, field: "store" | "warehouse", label: string) => {
     const e = getEdit(p);
     const value = e[field];
     return (
@@ -119,9 +142,28 @@ export default function AdminInventoryPage() {
         type="number"
         label={isMobile ? label : undefined}
         value={value}
-        onChange={(ev) => setEditField(p, field, Number(ev.target.value))}
+        onChange={(ev) => setEditQty(p, field, Number(ev.target.value))}
         slotProps={{ htmlInput: { min: 0, style: { textAlign: "center", width: 70 } } }}
         sx={{ "& input": { py: 0.75 } }}
+      />
+    );
+  };
+
+  const renderLocationField = (
+    p: ProductDto,
+    field: "locationStore" | "locationWarehouse",
+    label: string,
+  ) => {
+    const e = getEdit(p);
+    return (
+      <TextField
+        size="small"
+        label={isMobile ? label : undefined}
+        placeholder={label}
+        value={e[field]}
+        onChange={(ev) => setEditLocation(p, field, ev.target.value)}
+        slotProps={{ htmlInput: { maxLength: 100 } }}
+        sx={{ minWidth: 100, flexGrow: 1, "& input": { py: 0.75 } }}
       />
     );
   };
@@ -219,17 +261,26 @@ export default function AdminInventoryPage() {
                     <Box sx={{ mt: 0.75 }}>{renderTotalChip(p)}</Box>
                   </Box>
                 </Box>
-                <Box sx={{ display: "flex", gap: 1, mt: 1.5, alignItems: "center" }}>
-                  {renderQtyField(p, "store", t("admin.stockStore"))}
-                  {renderQtyField(p, "warehouse", t("admin.stockWarehouse"))}
-                  <IconButton
-                    color="primary"
-                    onClick={() => saveRow(p)}
-                    disabled={!dirty || savingId === p.id}
-                    sx={{ ml: "auto" }}
-                  >
-                    {savingId === p.id ? <CircularProgress size={22} /> : <SaveIcon />}
-                  </IconButton>
+                <Box sx={{ mt: 1.5, display: "flex", flexDirection: "column", gap: 1 }}>
+                  <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+                    <StorefrontIcon fontSize="small" color="action" />
+                    {renderQtyField(p, "store", t("admin.stockStore"))}
+                    {renderLocationField(p, "locationStore", t("admin.locationStore"))}
+                  </Box>
+                  <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+                    <WarehouseIcon fontSize="small" color="action" />
+                    {renderQtyField(p, "warehouse", t("admin.stockWarehouse"))}
+                    {renderLocationField(p, "locationWarehouse", t("admin.locationWarehouse"))}
+                  </Box>
+                  <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                    <IconButton
+                      color="primary"
+                      onClick={() => saveRow(p)}
+                      disabled={!dirty || savingId === p.id}
+                    >
+                      {savingId === p.id ? <CircularProgress size={22} /> : <SaveIcon />}
+                    </IconButton>
+                  </Box>
                 </Box>
               </Paper>
             );
@@ -254,12 +305,14 @@ export default function AdminInventoryPage() {
                     {t("admin.stockStore")}
                   </Box>
                 </TableCell>
+                <TableCell>{t("admin.locationStore")}</TableCell>
                 <TableCell align="center">
                   <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}>
                     <WarehouseIcon fontSize="small" />
                     {t("admin.stockWarehouse")}
                   </Box>
                 </TableCell>
+                <TableCell>{t("admin.locationWarehouse")}</TableCell>
                 <TableCell align="center">{t("admin.stockTotal")}</TableCell>
                 <TableCell align="center">{t("common.save")}</TableCell>
               </TableRow>
@@ -304,7 +357,9 @@ export default function AdminInventoryPage() {
                     </TableCell>
                     <TableCell>{p.categoryNameHe}</TableCell>
                     <TableCell align="center">{renderQtyField(p, "store", t("admin.stockStore"))}</TableCell>
+                    <TableCell>{renderLocationField(p, "locationStore", t("admin.locationStore"))}</TableCell>
                     <TableCell align="center">{renderQtyField(p, "warehouse", t("admin.stockWarehouse"))}</TableCell>
+                    <TableCell>{renderLocationField(p, "locationWarehouse", t("admin.locationWarehouse"))}</TableCell>
                     <TableCell align="center">{renderTotalChip(p)}</TableCell>
                     <TableCell align="center">
                       <IconButton
@@ -320,7 +375,7 @@ export default function AdminInventoryPage() {
               })}
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} align="center">{t("common.noResults")}</TableCell>
+                  <TableCell colSpan={9} align="center">{t("common.noResults")}</TableCell>
                 </TableRow>
               )}
             </TableBody>

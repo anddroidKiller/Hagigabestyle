@@ -40,6 +40,8 @@ export interface ProductDto {
   categoryNameEn: string;
   stockQuantityStore: number;
   stockQuantityWarehouse: number;
+  locationStore?: string;
+  locationWarehouse?: string;
   /** Total stock across store + warehouse (computed on backend) */
   stockQuantity: number;
   /** Readonly profit margin percentage (computed on backend) */
@@ -50,6 +52,8 @@ export interface ProductDto {
 export interface UpdateInventoryDto {
   stockQuantityStore: number;
   stockQuantityWarehouse: number;
+  locationStore?: string;
+  locationWarehouse?: string;
 }
 export interface PackageDto {
   id: number;

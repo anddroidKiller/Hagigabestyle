@@ -33,6 +33,8 @@ public class AppDbContext : DbContext
             entity.Property(e => e.NameEn).IsRequired().HasMaxLength(200);
             entity.Property(e => e.Price).HasPrecision(10, 2);
             entity.Property(e => e.CostPrice).HasPrecision(10, 2);
+            entity.Property(e => e.LocationStore).HasMaxLength(100);
+            entity.Property(e => e.LocationWarehouse).HasMaxLength(100);
             entity.HasOne(e => e.Category)
                   .WithMany(c => c.Products)
                   .HasForeignKey(e => e.CategoryId);

@@ -47,6 +47,8 @@ public class ProductService
             CategoryId = dto.CategoryId,
             StockQuantityStore = dto.StockQuantityStore,
             StockQuantityWarehouse = dto.StockQuantityWarehouse,
+            LocationStore = string.IsNullOrWhiteSpace(dto.LocationStore) ? null : dto.LocationStore.Trim(),
+            LocationWarehouse = string.IsNullOrWhiteSpace(dto.LocationWarehouse) ? null : dto.LocationWarehouse.Trim(),
             IsActive = dto.IsActive
         };
 
@@ -74,6 +76,8 @@ public class ProductService
         product.CategoryId = dto.CategoryId;
         product.StockQuantityStore = dto.StockQuantityStore;
         product.StockQuantityWarehouse = dto.StockQuantityWarehouse;
+        product.LocationStore = string.IsNullOrWhiteSpace(dto.LocationStore) ? null : dto.LocationStore.Trim();
+        product.LocationWarehouse = string.IsNullOrWhiteSpace(dto.LocationWarehouse) ? null : dto.LocationWarehouse.Trim();
         product.IsActive = dto.IsActive;
 
         await _db.SaveChangesAsync();
@@ -88,6 +92,8 @@ public class ProductService
 
         product.StockQuantityStore = Math.Max(0, dto.StockQuantityStore);
         product.StockQuantityWarehouse = Math.Max(0, dto.StockQuantityWarehouse);
+        product.LocationStore = string.IsNullOrWhiteSpace(dto.LocationStore) ? null : dto.LocationStore.Trim();
+        product.LocationWarehouse = string.IsNullOrWhiteSpace(dto.LocationWarehouse) ? null : dto.LocationWarehouse.Trim();
 
         await _db.SaveChangesAsync();
         return MapToDto(product);
@@ -125,6 +131,8 @@ public class ProductService
             CategoryNameEn = p.Category.NameEn,
             StockQuantityStore = p.StockQuantityStore,
             StockQuantityWarehouse = p.StockQuantityWarehouse,
+            LocationStore = p.LocationStore,
+            LocationWarehouse = p.LocationWarehouse,
             StockQuantity = total,
             ProfitMargin = margin,
             IsActive = p.IsActive
