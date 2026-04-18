@@ -46,6 +46,10 @@ export interface ProductDto {
   stockQuantity: number;
   /** Readonly profit margin percentage (computed on backend) */
   profitMargin: number;
+  /** Units sold over the last 30 days (Paid/Shipped/Delivered orders only) */
+  monthlySalesCount: number;
+  /** True when more than 5 units were sold in the last 30 days */
+  isHot: boolean;
   isActive: boolean;
 }
 
@@ -167,6 +171,8 @@ export const productsApi = {
   getAll: (categoryId?: number) =>
     api.get<ProductDto[]>('/products', { params: categoryId ? { categoryId } : {} }).then(r => r.data),
   getById: (id: number) => api.get<ProductDto>(`/products/${id}`).then(r => r.data),
+  getHot: (limit = 8) =>
+    api.get<ProductDto[]>('/products/hot', { params: { limit } }).then(r => r.data),
 };
 
 export const packagesApi = {

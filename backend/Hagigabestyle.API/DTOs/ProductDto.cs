@@ -22,6 +22,10 @@ public class ProductDto
     public int StockQuantity { get; set; }
     // Readonly computed profit margin (%): (Price - CostPrice) / Price * 100.
     public decimal ProfitMargin { get; set; }
+    // Total units sold over the trailing 30 days (only counts Paid/Shipped/Delivered orders).
+    public int MonthlySalesCount { get; set; }
+    // Marked "hot" when more than 5 units were sold in the last 30 days.
+    public bool IsHot { get; set; }
     public bool IsActive { get; set; }
 }
 

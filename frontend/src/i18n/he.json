@@ -39,6 +39,8 @@
     "shopNow": "לקניות",
     "featuredCategories": "קטגוריות מובילות",
     "popularPackages": "מארזים פופולריים",
+    "hotProductsTitle": "המוצרים החמים שלנו",
+    "hotProductsSubtitle": "המוצרים שכולם קונים החודש",
     "viewAll": "צפה בהכל"
   },
   "product": {
@@ -47,6 +49,7 @@
     "outOfStock": "אזל מהמלאי",
     "category": "קטגוריה",
     "barcode": "ברקוד",
+    "hot": "חם",
     "relatedProducts": "מוצרים דומים"
   },
   "package": {

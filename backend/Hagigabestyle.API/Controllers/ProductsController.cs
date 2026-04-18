@@ -18,6 +18,12 @@ public class ProductsController : ControllerBase
         return await _service.GetAllAsync(categoryId);
     }
 
+    [HttpGet("hot")]
+    public async Task<ActionResult<List<ProductDto>>> GetHot([FromQuery] int limit = 8)
+    {
+        return await _service.GetHotAsync(Math.Clamp(limit, 1, 24));
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<ProductDto>> GetById(int id)
     {

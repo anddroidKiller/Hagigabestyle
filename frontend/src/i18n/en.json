@@ -39,6 +39,8 @@
     "shopNow": "Shop Now",
     "featuredCategories": "Featured Categories",
     "popularPackages": "Popular Packages",
+    "hotProductsTitle": "Our Hot Products",
+    "hotProductsSubtitle": "What everyone is buying this month",
     "viewAll": "View All"
   },
   "product": {
@@ -47,6 +49,7 @@
     "outOfStock": "Out of Stock",
     "category": "Category",
     "barcode": "Barcode",
+    "hot": "HOT",
     "relatedProducts": "Related Products"
   },
   "package": {

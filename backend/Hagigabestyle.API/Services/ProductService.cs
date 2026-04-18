@@ -9,6 +9,18 @@ public class ProductService
 {
     private readonly AppDbContext _db;
 
+    // A product is "hot" when MORE than this many units were sold in the trailing window.
+    public const int HotThreshold = 5;
+    public static readonly TimeSpan HotWindow = TimeSpan.FromDays(30);
+
+    private static readonly OrderStatus[] _saleCountingStatuses =
+    {
+        OrderStatus.Paid,
+        OrderStatus.Processing,
+        OrderStatus.Shipped,
+        OrderStatus.Delivered,
+    };
+
     public ProductService(AppDbContext db) => _db = db;
 
     public async Task<List<ProductDto>> GetAllAsync(int? categoryId = null, bool activeOnly = true)
@@ -21,7 +33,39 @@ public class ProductService
             .OrderByDescending(p => p.CreatedAt)
             .ToListAsync();
 
-        return products.Select(MapToDto).ToList();
+        var ids = products.Select(p => p.Id).ToList();
+        var salesByProduct = await GetMonthlySalesAsync(ids);
+        return products.Select(p => MapToDto(p, salesByProduct.GetValueOrDefault(p.Id, 0))).ToList();
+    }
+
+    public async Task<List<ProductDto>> GetHotAsync(int limit = 8)
+    {
+        var since = DateTime.UtcNow - HotWindow;
+
+        var hotIds = await _db.OrderItems
+            .Where(oi => oi.ProductId != null
+                         && _saleCountingStatuses.Contains(oi.Order!.Status)
+                         && oi.Order.CreatedAt >= since)
+            .GroupBy(oi => oi.ProductId!.Value)
+            .Select(g => new { ProductId = g.Key, Sold = g.Sum(oi => oi.Quantity) })
+            .Where(x => x.Sold > HotThreshold)
+            .OrderByDescending(x => x.Sold)
+            .Take(limit)
+            .ToListAsync();
+
+        if (hotIds.Count == 0) return new List<ProductDto>();
+
+        var idList = hotIds.Select(x => x.ProductId).ToList();
+        var products = await _db.Products
+            .Include(p => p.Category)
+            .Where(p => p.IsActive && idList.Contains(p.Id))
+            .ToListAsync();
+
+        var salesLookup = hotIds.ToDictionary(x => x.ProductId, x => x.Sold);
+        return products
+            .OrderByDescending(p => salesLookup.GetValueOrDefault(p.Id, 0))
+            .Select(p => MapToDto(p, salesLookup.GetValueOrDefault(p.Id, 0)))
+            .ToList();
     }
 
     public async Task<ProductDto?> GetByIdAsync(int id)
@@ -29,7 +73,26 @@ public class ProductService
         var product = await _db.Products
             .Include(p => p.Category)
             .FirstOrDefaultAsync(p => p.Id == id);
-        return product == null ? null : MapToDto(product);
+        if (product == null) return null;
+        var sales = await GetMonthlySalesAsync(new List<int> { id });
+        return MapToDto(product, sales.GetValueOrDefault(id, 0));
+    }
+
+    private async Task<Dictionary<int, int>> GetMonthlySalesAsync(IReadOnlyCollection<int> productIds)
+    {
+        if (productIds.Count == 0) return new Dictionary<int, int>();
+        var since = DateTime.UtcNow - HotWindow;
+
+        var rows = await _db.OrderItems
+            .Where(oi => oi.ProductId != null
+                         && productIds.Contains(oi.ProductId.Value)
+                         && _saleCountingStatuses.Contains(oi.Order!.Status)
+                         && oi.Order.CreatedAt >= since)
+            .GroupBy(oi => oi.ProductId!.Value)
+            .Select(g => new { ProductId = g.Key, Sold = g.Sum(oi => oi.Quantity) })
+            .ToListAsync();
+
+        return rows.ToDictionary(r => r.ProductId, r => r.Sold);
     }
 
     public async Task<ProductDto> CreateAsync(CreateProductDto dto)
@@ -57,7 +120,7 @@ public class ProductService
 
         await _db.Entry(product).Reference(p => p.Category).LoadAsync();
 
-        return MapToDto(product);
+        return MapToDto(product, 0);
     }
 
     public async Task<ProductDto?> UpdateAsync(int id, UpdateProductDto dto)
@@ -82,7 +145,8 @@ public class ProductService
 
         await _db.SaveChangesAsync();
 
-        return MapToDto(product);
+        var sales = await GetMonthlySalesAsync(new List<int> { id });
+        return MapToDto(product, sales.GetValueOrDefault(id, 0));
     }
 
     public async Task<ProductDto?> UpdateInventoryAsync(int id, UpdateInventoryDto dto)
@@ -96,7 +160,8 @@ public class ProductService
         product.LocationWarehouse = string.IsNullOrWhiteSpace(dto.LocationWarehouse) ? null : dto.LocationWarehouse.Trim();
 
         await _db.SaveChangesAsync();
-        return MapToDto(product);
+        var sales = await GetMonthlySalesAsync(new List<int> { id });
+        return MapToDto(product, sales.GetValueOrDefault(id, 0));
     }
 
     public async Task<bool> DeleteAsync(int id)
@@ -109,7 +174,7 @@ public class ProductService
         return true;
     }
 
-    private static ProductDto MapToDto(Product p)
+    private static ProductDto MapToDto(Product p, int monthlySales)
     {
         var total = p.StockQuantityStore + p.StockQuantityWarehouse;
         var margin = p.Price > 0
@@ -135,6 +200,8 @@ public class ProductService
             LocationWarehouse = p.LocationWarehouse,
             StockQuantity = total,
             ProfitMargin = margin,
+            MonthlySalesCount = monthlySales,
+            IsHot = monthlySales > HotThreshold,
             IsActive = p.IsActive
         };
     }
