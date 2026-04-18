@@ -125,7 +125,9 @@ export default function ProductPage() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              gap: 2,
+              flexWrap: 'wrap',
+              columnGap: 2,
+              rowGap: 1.5,
               mt: 3,
             }}
           >

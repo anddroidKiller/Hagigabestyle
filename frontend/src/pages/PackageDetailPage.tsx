@@ -121,11 +121,13 @@ export default function PackageDetailPage() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              gap: 2,
+              flexWrap: 'wrap',
+              columnGap: 2,
+              rowGap: 1.5,
               mt: 3,
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 2, minWidth: 0 }}>
+            <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 2, minWidth: 0, flexWrap: 'wrap' }}>
               <Typography variant="h3" color="primary" sx={{ fontWeight: 700 }}>
                 ₪{pkg.price.toFixed(2)}
               </Typography>

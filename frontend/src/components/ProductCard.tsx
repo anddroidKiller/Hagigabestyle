@@ -132,7 +132,9 @@ export default function ProductCard({ product }: Props) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: 1,
+            flexWrap: 'wrap',
+            columnGap: 1,
+            rowGap: 0.75,
             mt: 1,
           }}
         >
