@@ -50,6 +50,8 @@
     "category": "Category",
     "barcode": "Barcode",
     "hot": "HOT",
+    "addAnother": "Add Another",
+    "inCart": "In Cart",
     "relatedProducts": "Related Products"
   },
   "package": {

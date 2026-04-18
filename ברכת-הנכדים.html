@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>ברכת הנכדים</title>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700;900&family=Amatic+SC:wght@700&family=Heebo:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    font-family: 'Frank Ruhl Libre', 'David', serif;
+    background: #e9d9b8;
+  }
+
+  .page {
+    width: 210mm;
+    height: 297mm;
+    margin: 0 auto;
+    position: relative;
+    background:
+      radial-gradient(ellipse at top, rgba(255,248,220,0.95), rgba(245,222,179,0.85) 60%, rgba(218,165,32,0.25)),
+      linear-gradient(135deg, #fdf6e3 0%, #f5e6c8 50%, #e8d5a7 100%);
+    overflow: hidden;
+    padding: 14mm;
+    color: #3a2410;
+  }
+
+  /* Decorative gold border */
+  .border-outer {
+    position: absolute;
+    top: 8mm; right: 8mm; bottom: 8mm; left: 8mm;
+    border: 2px solid #b8860b;
+    border-radius: 6px;
+    pointer-events: none;
+  }
+  .border-inner {
+    position: absolute;
+    top: 11mm; right: 11mm; bottom: 11mm; left: 11mm;
+    border: 1px solid #daa520;
+    border-radius: 4px;
+    pointer-events: none;
+  }
+
+  /* Corner ornaments */
+  .corner {
+    position: absolute;
+    width: 28mm;
+    height: 28mm;
+    background:
+      radial-gradient(circle at center, transparent 45%, rgba(184,134,11,0.25) 46%, transparent 47%),
+      conic-gradient(from 0deg, rgba(184,134,11,0.35), transparent 25%, rgba(184,134,11,0.35) 50%, transparent 75%, rgba(184,134,11,0.35));
+    -webkit-mask: radial-gradient(circle at center, #000 58%, transparent 59%);
+            mask: radial-gradient(circle at center, #000 58%, transparent 59%);
+    opacity: 0.55;
+  }
+  .corner.tl { top: 4mm; right: 4mm; }
+  .corner.tr { top: 4mm; left: 4mm; }
+  .corner.bl { bottom: 4mm; right: 4mm; }
+  .corner.br { bottom: 4mm; left: 4mm; }
+
+  /* Top flourish */
+  .flourish {
+    text-align: center;
+    font-size: 28pt;
+    color: #b8860b;
+    letter-spacing: 10px;
+    margin-top: 6mm;
+    line-height: 1;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+  }
+
+  header {
+    text-align: center;
+    padding: 4mm 0 2mm;
+    position: relative;
+    z-index: 2;
+  }
+
+  .sub-top {
+    font-size: 13pt;
+    letter-spacing: 6px;
+    color: #7a4e1a;
+    margin-bottom: 3mm;
+  }
+
+  h1 {
+    font-family: 'Frank Ruhl Libre', serif;
+    font-weight: 900;
+    font-size: 42pt;
+    color: #5b2e0d;
+    line-height: 1.1;
+    text-shadow: 0 2px 0 rgba(255,255,255,0.5), 0 4px 10px rgba(184,134,11,0.25);
+    margin-bottom: 2mm;
+  }
+
+  h1 .amp {
+    color: #b8860b;
+    font-size: 34pt;
+  }
+
+  .subtitle {
+    font-size: 14pt;
+    color: #7a4e1a;
+    font-style: italic;
+    margin-top: 2mm;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 6mm auto 4mm;
+    color: #b8860b;
+  }
+  .divider::before, .divider::after {
+    content: "";
+    flex: 0 0 22%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #b8860b, transparent);
+  }
+  .divider .diamond {
+    font-size: 14pt;
+  }
+
+  /* Two-column layout: girls (right) and boys (left) */
+  .columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6mm;
+    padding: 0 2mm;
+    margin-top: 2mm;
+    position: relative;
+    z-index: 2;
+  }
+
+  .column {
+    display: flex;
+    flex-direction: column;
+    gap: 3.5mm;
+  }
+
+  .col-title {
+    text-align: center;
+    font-family: 'Frank Ruhl Libre', serif;
+    font-weight: 700;
+    font-size: 18pt;
+    color: #5b2e0d;
+    padding-bottom: 2mm;
+    margin-bottom: 1mm;
+    border-bottom: 1px dashed #b8860b;
+    letter-spacing: 4px;
+  }
+
+  .col-title.girls { color: #8a3a5a; }
+  .col-title.boys  { color: #2c5a7a; }
+
+  .card {
+    background:
+      linear-gradient(180deg, rgba(255,250,235,0.92), rgba(250,240,210,0.78));
+    border: 1px solid #c9a35a;
+    border-radius: 10px;
+    padding: 4mm 3mm;
+    text-align: center;
+    position: relative;
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.6),
+      0 2px 6px rgba(122,78,26,0.15);
+  }
+
+  .card::before {
+    content: "✦";
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #b8860b;
+    background: #f5e6c8;
+    padding: 0 6px;
+    font-size: 12pt;
+  }
+
+  .column.girls .card::before { color: #c46a8a; }
+  .column.boys  .card::before { color: #4a8aaa; }
+
+  .name {
+    font-family: 'Frank Ruhl Libre', serif;
+    font-weight: 700;
+    font-size: 19pt;
+    color: #4a240a;
+    line-height: 1.15;
+    margin-bottom: 1mm;
+  }
+
+  .relation {
+    font-size: 11pt;
+    color: #8a5a20;
+    letter-spacing: 1px;
+  }
+
+  /* Footer blessing */
+  footer {
+    position: absolute;
+    bottom: 16mm;
+    right: 14mm;
+    left: 14mm;
+    text-align: center;
+    z-index: 2;
+  }
+
+  .blessing {
+    font-family: 'Frank Ruhl Libre', serif;
+    font-size: 15pt;
+    color: #5b2e0d;
+    line-height: 1.7;
+    padding: 5mm 8mm;
+    border-top: 1px solid #b8860b;
+    border-bottom: 1px solid #b8860b;
+    background: rgba(255,250,235,0.5);
+  }
+
+  .blessing strong {
+    color: #8a4a10;
+    font-weight: 700;
+  }
+
+  .signature {
+    margin-top: 4mm;
+    font-size: 11pt;
+    color: #7a4e1a;
+    letter-spacing: 3px;
+  }
+
+  /* Print button (screen only) */
+  .print-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: #8a4a10;
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14pt;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 100;
+  }
+  .print-btn:hover { background: #b8860b; }
+
+  @media print {
+    body { background: white; }
+    .page { margin: 0; box-shadow: none; }
+    .print-btn { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<button class="print-btn" onclick="window.print()">🖨️ הדפסה</button>
+
+<div class="page">
+  <div class="border-outer"></div>
+  <div class="border-inner"></div>
+  <div class="corner tl"></div>
+  <div class="corner tr"></div>
+  <div class="corner bl"></div>
+  <div class="corner br"></div>
+
+  <div class="flourish">❦ ✦ ❦</div>
+
+  <header>
+    <div class="sub-top">ב ר כ ת   ה נ כ ד י ם</div>
+    <h1>יְבָרֶכְךָ ה' <span class="amp">וְיִשְׁמְרֶךָ</span></h1>
+    <div class="subtitle">אוֹר וְשִׂמְחָה וְנַחַת לְדוֹרוֹת</div>
+    <div class="divider"><span class="diamond">✦</span></div>
+  </header>
+
+  <div class="columns">
+    <div class="column girls">
+      <div class="col-title girls">בָּנוֹת ✿</div>
+      <div class="card">
+        <div class="name">אֲבִיגַיִל</div>
+        <div class="relation">בַּת עֵדֶן</div>
+      </div>
+      <div class="card">
+        <div class="name">נֹעָה</div>
+        <div class="relation">בַּת עֵדֶן</div>
+      </div>
+      <div class="card">
+        <div class="name">אוֹרִיאָן</div>
+        <div class="relation">בַּת בְּתָאֵל</div>
+      </div>
+      <div class="card">
+        <div class="name">הַלֵּלִי</div>
+        <div class="relation">בַּת בְּתָאֵל</div>
+      </div>
+      <div class="card">
+        <div class="name">אֲדֶל</div>
+        <div class="relation">בַּת דָּנִיאֵל</div>
+      </div>
+      <div class="card">
+        <div class="name">אֱלִיאָן</div>
+        <div class="relation">בַּת לִימוֹר</div>
+      </div>
+    </div>
+
+    <div class="column boys">
+      <div class="col-title boys">✦ בָּנִים</div>
+      <div class="card">
+        <div class="name">יְהוֹנָתָן</div>
+        <div class="relation">בֶּן בְּתָאֵל</div>
+      </div>
+      <div class="card">
+        <div class="name">נְהוֹרַאי</div>
+        <div class="relation">בֶּן דָּנִיאֵל</div>
+      </div>
+      <div class="card">
+        <div class="name">אֵלִיָּה</div>
+        <div class="relation">בֶּן דָּנִיאֵל</div>
+      </div>
+      <div class="card">
+        <div class="name">בְּנָיָה יְהוּדָה</div>
+        <div class="relation">בֶּן עֵדֶן</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="signature">❦   מִשְׁפַּחְתֵּנוּ הָאֲהוּבָה   ❦</div>
+  </footer>
+</div>
+
+</body>
+</html>
