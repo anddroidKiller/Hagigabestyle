@@ -48,7 +48,7 @@ export default function ProductCard({ product }: Props) {
         flexDirection: 'column',
         cursor: 'pointer',
         position: 'relative',
-        overflow: 'visible',
+        overflow: 'hidden',
         borderRadius: 3,
         transition: 'transform 0.2s ease',
         '&:hover': { transform: 'translateY(-2px)' },
