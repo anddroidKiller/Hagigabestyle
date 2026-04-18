@@ -120,35 +120,34 @@ export default function ProductPage() {
             sx={{ mt: 1 }}
           />
 
-          <Typography variant="h3" color="primary" sx={{ mt: 3, fontWeight: 700 }}>
-            ₪{product.price.toFixed(2)}
-          </Typography>
-
-          {getDescription(product) && (
-            <Typography variant="body1" color="text.secondary" sx={{ mt: 2 }}>
-              {getDescription(product)}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 2,
+              mt: 3,
+            }}
+          >
+            <Typography variant="h3" color="primary" sx={{ fontWeight: 700 }}>
+              ₪{product.price.toFixed(2)}
             </Typography>
-          )}
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 4 }}>
-            {cartQty > 0 ? (
+            {cartQty > 0 && (
               <Box
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between',
-                  width: '100%',
-                  minHeight: 56,
                   bgcolor: 'primary.main',
                   color: 'primary.contrastText',
-                  borderRadius: 2,
-                  px: 1,
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  borderRadius: 999,
+                  px: 0.5,
+                  py: 0.25,
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
                 }}
               >
                 <IconButton
                   onClick={handleDecrease}
-                  size="large"
                   sx={{
                     color: 'inherit',
                     '&:hover': { bgcolor: 'rgba(255,255,255,0.18)' },
@@ -157,12 +156,13 @@ export default function ProductPage() {
                 >
                   <RemoveIcon />
                 </IconButton>
-                <Typography sx={{ fontWeight: 700, fontSize: '1.125rem' }}>
-                  {cartQty} {t('product.inCart')}
+                <Typography
+                  sx={{ minWidth: 28, textAlign: 'center', fontWeight: 700, fontSize: '1.125rem' }}
+                >
+                  {cartQty}
                 </Typography>
                 <IconButton
                   onClick={handleIncrease}
-                  size="large"
                   disabled={outOfStock}
                   sx={{
                     color: 'inherit',
@@ -174,19 +174,30 @@ export default function ProductPage() {
                   <AddIcon />
                 </IconButton>
               </Box>
-            ) : (
-              <Button
-                variant="contained"
-                size="large"
-                startIcon={<ShoppingCartIcon />}
-                onClick={handleAddToCart}
-                disabled={outOfStock}
-                sx={{ flexGrow: 1, minHeight: 56 }}
-              >
-                {outOfStock ? t('product.outOfStock') : t('common.addToCart')}
-              </Button>
             )}
           </Box>
+
+          {getDescription(product) && (
+            <Typography variant="body1" color="text.secondary" sx={{ mt: 2 }}>
+              {getDescription(product)}
+            </Typography>
+          )}
+
+          <Button
+            variant={cartQty > 0 ? 'outlined' : 'contained'}
+            size="large"
+            fullWidth
+            startIcon={<ShoppingCartIcon />}
+            onClick={handleAddToCart}
+            disabled={outOfStock}
+            sx={{ mt: 4, minHeight: 56 }}
+          >
+            {outOfStock
+              ? t('product.outOfStock')
+              : cartQty > 0
+                ? t('product.addAnother')
+                : t('common.addToCart')}
+          </Button>
         </Grid>
       </Grid>
     </Container>

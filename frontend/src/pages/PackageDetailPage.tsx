@@ -116,14 +116,66 @@ export default function PackageDetailPage() {
             />
           )}
 
-          <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 2, mt: 3 }}>
-            <Typography variant="h3" color="primary" sx={{ fontWeight: 700 }}>
-              ₪{pkg.price.toFixed(2)}
-            </Typography>
-            {pkg.originalPrice > pkg.price && (
-              <Typography variant="h5" sx={{ textDecoration: 'line-through', color: 'text.secondary' }}>
-                ₪{pkg.originalPrice.toFixed(2)}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 2,
+              mt: 3,
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 2, minWidth: 0 }}>
+              <Typography variant="h3" color="primary" sx={{ fontWeight: 700 }}>
+                ₪{pkg.price.toFixed(2)}
               </Typography>
+              {pkg.originalPrice > pkg.price && (
+                <Typography variant="h5" sx={{ textDecoration: 'line-through', color: 'text.secondary' }}>
+                  ₪{pkg.originalPrice.toFixed(2)}
+                </Typography>
+              )}
+            </Box>
+
+            {cartQty > 0 && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  bgcolor: 'primary.main',
+                  color: 'primary.contrastText',
+                  borderRadius: 999,
+                  px: 0.5,
+                  py: 0.25,
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+                  flexShrink: 0,
+                }}
+              >
+                <IconButton
+                  onClick={handleDecrease}
+                  sx={{
+                    color: 'inherit',
+                    '&:hover': { bgcolor: 'rgba(255,255,255,0.18)' },
+                  }}
+                  aria-label={t('common.removeFromCart')}
+                >
+                  <RemoveIcon />
+                </IconButton>
+                <Typography
+                  sx={{ minWidth: 28, textAlign: 'center', fontWeight: 700, fontSize: '1.125rem' }}
+                >
+                  {cartQty}
+                </Typography>
+                <IconButton
+                  onClick={handleIncrease}
+                  sx={{
+                    color: 'inherit',
+                    '&:hover': { bgcolor: 'rgba(255,255,255,0.18)' },
+                  }}
+                  aria-label={t('common.addToCart')}
+                >
+                  <AddIcon />
+                </IconButton>
+              </Box>
             )}
           </Box>
 
@@ -149,60 +201,16 @@ export default function PackageDetailPage() {
             ))}
           </List>
 
-          {cartQty > 0 ? (
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                width: '100%',
-                minHeight: 56,
-                mt: 3,
-                bgcolor: 'primary.main',
-                color: 'primary.contrastText',
-                borderRadius: 2,
-                px: 1,
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              }}
-            >
-              <IconButton
-                onClick={handleDecrease}
-                size="large"
-                sx={{
-                  color: 'inherit',
-                  '&:hover': { bgcolor: 'rgba(255,255,255,0.18)' },
-                }}
-                aria-label={t('common.removeFromCart')}
-              >
-                <RemoveIcon />
-              </IconButton>
-              <Typography sx={{ fontWeight: 700, fontSize: '1.125rem' }}>
-                {cartQty} {t('product.inCart')}
-              </Typography>
-              <IconButton
-                onClick={handleIncrease}
-                size="large"
-                sx={{
-                  color: 'inherit',
-                  '&:hover': { bgcolor: 'rgba(255,255,255,0.18)' },
-                }}
-                aria-label={t('common.addToCart')}
-              >
-                <AddIcon />
-              </IconButton>
-            </Box>
-          ) : (
-            <Button
-              variant="contained"
-              size="large"
-              fullWidth
-              startIcon={<ShoppingCartIcon />}
-              onClick={handleAddToCart}
-              sx={{ mt: 3, minHeight: 52 }}
-            >
-              {t('common.addToCart')}
-            </Button>
-          )}
+          <Button
+            variant={cartQty > 0 ? 'outlined' : 'contained'}
+            size="large"
+            fullWidth
+            startIcon={<ShoppingCartIcon />}
+            onClick={handleAddToCart}
+            sx={{ mt: 3, minHeight: 52 }}
+          >
+            {cartQty > 0 ? t('product.addAnother') : t('common.addToCart')}
+          </Button>
         </Grid>
       </Grid>
     </Container>
