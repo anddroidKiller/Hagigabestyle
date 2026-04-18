@@ -7,6 +7,9 @@ dist-ssr/
 # Local temp files
 .commit-msg.tmp
 
+# Personal HTML notes (not part of the project)
+/*.html
+
 # .NET
 bin/
 obj/

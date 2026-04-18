@@ -3,10 +3,12 @@ import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Container, Typography, Grid, Box, Button, Breadcrumbs, Chip, CircularProgress,
-  List, ListItem, ListItemText, Divider,
+  List, ListItem, ListItemText, Divider, IconButton,
 } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 import { packagesApi, PackageDto } from '../services/api';
 import { useLocalized } from '../hooks/useLocalized';
 import { useCartStore } from '../store/cartStore';
@@ -18,6 +20,12 @@ export default function PackageDetailPage() {
   const [pkg, setPkg] = useState<PackageDto | null>(null);
   const [loading, setLoading] = useState(true);
   const addItem = useCartStore((s) => s.addItem);
+  const updateQuantity = useCartStore((s) => s.updateQuantity);
+  const cartItem = useCartStore((s) =>
+    pkg ? s.items.find((i) => i.packageId === pkg.id) : undefined,
+  );
+  const cartQty = cartItem?.quantity ?? 0;
+  const cartLineId = cartItem?.id;
 
   useEffect(() => {
     if (!id) return;
@@ -51,6 +59,14 @@ export default function PackageDetailPage() {
       quantity: 1,
       imageUrl: pkg.imageUrl,
     });
+  };
+
+  const handleIncrease = () => {
+    if (cartLineId) updateQuantity(cartLineId, cartQty + 1);
+  };
+
+  const handleDecrease = () => {
+    if (cartLineId) updateQuantity(cartLineId, cartQty - 1);
   };
 
   return (
@@ -133,16 +149,60 @@ export default function PackageDetailPage() {
             ))}
           </List>
 
-          <Button
-            variant="contained"
-            size="large"
-            fullWidth
-            startIcon={<ShoppingCartIcon />}
-            onClick={handleAddToCart}
-            sx={{ mt: 3, minHeight: 52 }}
-          >
-            {t('common.addToCart')}
-          </Button>
+          {cartQty > 0 ? (
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                width: '100%',
+                minHeight: 56,
+                mt: 3,
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText',
+                borderRadius: 2,
+                px: 1,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              }}
+            >
+              <IconButton
+                onClick={handleDecrease}
+                size="large"
+                sx={{
+                  color: 'inherit',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.18)' },
+                }}
+                aria-label={t('common.removeFromCart')}
+              >
+                <RemoveIcon />
+              </IconButton>
+              <Typography sx={{ fontWeight: 700, fontSize: '1.125rem' }}>
+                {cartQty} {t('product.inCart')}
+              </Typography>
+              <IconButton
+                onClick={handleIncrease}
+                size="large"
+                sx={{
+                  color: 'inherit',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.18)' },
+                }}
+                aria-label={t('common.addToCart')}
+              >
+                <AddIcon />
+              </IconButton>
+            </Box>
+          ) : (
+            <Button
+              variant="contained"
+              size="large"
+              fullWidth
+              startIcon={<ShoppingCartIcon />}
+              onClick={handleAddToCart}
+              sx={{ mt: 3, minHeight: 52 }}
+            >
+              {t('common.addToCart')}
+            </Button>
+          )}
         </Grid>
       </Grid>
     </Container>

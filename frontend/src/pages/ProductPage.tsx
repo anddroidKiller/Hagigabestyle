@@ -18,8 +18,13 @@ export default function ProductPage() {
   const { getName, getDescription, getCategoryName } = useLocalized();
   const [product, setProduct] = useState<ProductDto | null>(null);
   const [loading, setLoading] = useState(true);
-  const [quantity, setQuantity] = useState(1);
   const addItem = useCartStore((s) => s.addItem);
+  const updateQuantity = useCartStore((s) => s.updateQuantity);
+  const cartItem = useCartStore((s) =>
+    product ? s.items.find((i) => i.productId === product.id) : undefined,
+  );
+  const cartQty = cartItem?.quantity ?? 0;
+  const cartLineId = cartItem?.id;
 
   useEffect(() => {
     if (!id) return;
@@ -44,15 +49,25 @@ export default function ProductPage() {
     );
   }
 
+  const outOfStock = product.stockQuantity <= 0;
+
   const handleAddToCart = () => {
     addItem({
       productId: product.id,
       nameHe: product.nameHe,
       nameEn: product.nameEn,
       price: product.price,
-      quantity,
+      quantity: 1,
       imageUrl: product.imageUrl,
     });
+  };
+
+  const handleIncrease = () => {
+    if (cartLineId) updateQuantity(cartLineId, cartQty + 1);
+  };
+
+  const handleDecrease = () => {
+    if (cartLineId) updateQuantity(cartLineId, cartQty - 1);
   };
 
   return (
@@ -116,34 +131,61 @@ export default function ProductPage() {
           )}
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 4 }}>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                border: '1px solid',
-                borderColor: 'divider',
-                borderRadius: 2,
-              }}
-            >
-              <IconButton onClick={() => setQuantity(Math.max(1, quantity - 1))} size="small">
-                <RemoveIcon />
-              </IconButton>
-              <Typography sx={{ px: 2, fontWeight: 600 }}>{quantity}</Typography>
-              <IconButton onClick={() => setQuantity(quantity + 1)} size="small">
-                <AddIcon />
-              </IconButton>
-            </Box>
-
-            <Button
-              variant="contained"
-              size="large"
-              startIcon={<ShoppingCartIcon />}
-              onClick={handleAddToCart}
-              disabled={product.stockQuantity <= 0}
-              sx={{ flexGrow: 1, minHeight: 48 }}
-            >
-              {t('common.addToCart')}
-            </Button>
+            {cartQty > 0 ? (
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  width: '100%',
+                  minHeight: 56,
+                  bgcolor: 'primary.main',
+                  color: 'primary.contrastText',
+                  borderRadius: 2,
+                  px: 1,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                }}
+              >
+                <IconButton
+                  onClick={handleDecrease}
+                  size="large"
+                  sx={{
+                    color: 'inherit',
+                    '&:hover': { bgcolor: 'rgba(255,255,255,0.18)' },
+                  }}
+                  aria-label={t('common.removeFromCart')}
+                >
+                  <RemoveIcon />
+                </IconButton>
+                <Typography sx={{ fontWeight: 700, fontSize: '1.125rem' }}>
+                  {cartQty} {t('product.inCart')}
+                </Typography>
+                <IconButton
+                  onClick={handleIncrease}
+                  size="large"
+                  disabled={outOfStock}
+                  sx={{
+                    color: 'inherit',
+                    '&:hover': { bgcolor: 'rgba(255,255,255,0.18)' },
+                    '&.Mui-disabled': { color: 'rgba(255,255,255,0.5)' },
+                  }}
+                  aria-label={t('common.addToCart')}
+                >
+                  <AddIcon />
+                </IconButton>
+              </Box>
+            ) : (
+              <Button
+                variant="contained"
+                size="large"
+                startIcon={<ShoppingCartIcon />}
+                onClick={handleAddToCart}
+                disabled={outOfStock}
+                sx={{ flexGrow: 1, minHeight: 56 }}
+              >
+                {outOfStock ? t('product.outOfStock') : t('common.addToCart')}
+              </Button>
+            )}
           </Box>
         </Grid>
       </Grid>
