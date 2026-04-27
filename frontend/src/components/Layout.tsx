@@ -13,6 +13,7 @@ import BuildCircleIcon from '@mui/icons-material/BuildCircle';
 import { useCartStore } from '../store/cartStore';
 import { useAuthStore } from '../store/authStore';
 import { useSiteSettingsStore } from '../store/siteSettingsStore';
+import ContactFabs from './ContactFabs';
 
 export default function Layout() {
   const { t, i18n } = useTranslation();
@@ -165,6 +166,8 @@ export default function Layout() {
       <Box component="main" sx={{ flexGrow: 1 }}>
         <Outlet />
       </Box>
+
+      <ContactFabs />
 
       {/* Mobile Sticky Cart Bar */}
       {isMobile && totalItems > 0 && (

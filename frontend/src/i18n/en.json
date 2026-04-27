@@ -89,6 +89,11 @@
     "hours": "Sun-Thu 09:00-19:00, Fri 09:00-14:00",
     "phone": "055-660-8856"
   },
+  "contact": {
+    "whatsapp": "WhatsApp",
+    "call": "Call us",
+    "email": "Send us an email"
+  },
   "orderConfirmation": {
     "title": "Order Received!",
     "thankYou": "Thank you for your order",
