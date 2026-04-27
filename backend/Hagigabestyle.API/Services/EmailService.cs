@@ -48,6 +48,21 @@ public class EmailService
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress(fromName, fromEmail));
             message.To.Add(MailboxAddress.Parse(order.CustomerEmail));
+
+            var adminBcc = _config["Email:AdminBcc"];
+            if (!string.IsNullOrWhiteSpace(adminBcc))
+            {
+                try
+                {
+                    message.Bcc.Add(MailboxAddress.Parse(adminBcc));
+                    _logger.LogInformation("[EMAIL] Added admin BCC: {Bcc}", adminBcc);
+                }
+                catch (Exception bccEx)
+                {
+                    _logger.LogWarning(bccEx, "[EMAIL] Invalid AdminBcc address: {Bcc}", adminBcc);
+                }
+            }
+
             message.Subject = $"חגיגה בסטייל - אישור הזמנה #{order.Id}";
 
             var html = BuildOrderEmailHtml(order);
