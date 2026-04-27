@@ -52,8 +52,9 @@ export default function HomePage() {
         sx={{
           position: 'relative',
           width: '100%',
-          overflow: 'hidden',
           bgcolor: '#faf5eb',
+          display: 'flex',
+          justifyContent: 'center',
         }}
       >
         <Box
@@ -62,95 +63,82 @@ export default function HomePage() {
           alt={t('home.heroTitle')}
           sx={{
             width: '100%',
-            height: { xs: 220, sm: 320, md: 420, lg: 480 },
-            objectFit: 'cover',
-            objectPosition: 'center',
+            maxWidth: { xs: '100%', md: 1100 },
+            height: 'auto',
             display: 'block',
           }}
         />
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: { xs: 12, md: 32 },
-            left: '50%',
-            transform: 'translateX(-50%)',
-          }}
-        >
-          <Button
-            component={Link}
-            to="/categories"
-            variant="contained"
-            size="large"
-            sx={{
-              bgcolor: '#c59c5c',
-              color: 'white',
-              fontWeight: 700,
-              px: { xs: 4, md: 6 },
-              py: { xs: 1, md: 1.5 },
-              fontSize: { xs: '0.9rem', md: '1.1rem' },
-              borderRadius: 3,
-              boxShadow: '0 4px 20px rgba(197,156,92,0.4)',
-              '&:hover': { bgcolor: '#a17d3f' },
-            }}
-            endIcon={<ArrowIcon />}
-          >
-            {t('home.shopNow')}
-          </Button>
-        </Box>
       </Box>
 
       <Container maxWidth="lg" sx={{ py: 6 }}>
-        {/* Featured Categories */}
+        {/* All Categories — horizontally scrollable */}
         <Box sx={{ mb: 8 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h4" sx={{ fontWeight: 700 }}>
-              {t('home.featuredCategories')}
-            </Typography>
-            <Button component={Link} to="/categories" endIcon={<ArrowIcon />}>
-              {t('home.viewAll')}
-            </Button>
-          </Box>
-
-          <Grid container spacing={3}>
+          <Box
+            sx={{
+              display: 'flex',
+              gap: { xs: 3, sm: 4 },
+              justifyContent: 'safe center',
+              overflowX: 'auto',
+              overflowY: 'hidden',
+              scrollSnapType: 'x proximity',
+              pb: 1.5,
+              mx: { xs: -2, sm: 0 },
+              px: { xs: 2, sm: 0 },
+              '&::-webkit-scrollbar': { height: 8 },
+              '&::-webkit-scrollbar-thumb': {
+                bgcolor: 'primary.light',
+                borderRadius: 4,
+                '&:hover': { bgcolor: 'primary.main' },
+              },
+              '&::-webkit-scrollbar-track': {
+                bgcolor: 'rgba(0,0,0,0.05)',
+                borderRadius: 4,
+              },
+              scrollbarWidth: 'thin',
+              scrollbarColor: (theme) =>
+                `${theme.palette.primary.light} rgba(0,0,0,0.05)`,
+            }}
+          >
             {categories.map((cat) => (
-              <Grid size={{ xs: 6, sm: 4, md: 2.4 }} key={cat.id}>
-                <Card
-                  component={Link}
-                  to={`/category/${cat.id}`}
+              <Card
+                key={cat.id}
+                component={Link}
+                to={`/category/${cat.id}`}
+                sx={{
+                  flexShrink: 0,
+                  width: { xs: 150, sm: 180, md: 200 },
+                  textDecoration: 'none',
+                  textAlign: 'center',
+                  scrollSnapAlign: 'start',
+                }}
+              >
+                <CardMedia
+                  component="div"
                   sx={{
-                    textDecoration: 'none',
-                    textAlign: 'center',
-                    height: '100%',
+                    height: 120,
+                    bgcolor: 'primary.light',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundImage: cat.imageUrl ? `url(${cat.imageUrl})` : 'none',
+                    backgroundSize: 'cover',
                   }}
                 >
-                  <CardMedia
-                    component="div"
-                    sx={{
-                      height: 120,
-                      bgcolor: 'primary.light',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundImage: cat.imageUrl ? `url(${cat.imageUrl})` : 'none',
-                      backgroundSize: 'cover',
-                    }}
-                  >
-                    {!cat.imageUrl && (
-                      <Typography variant="h3" sx={{ opacity: 0.3 }}>🎊</Typography>
-                    )}
-                  </CardMedia>
-                  <CardContent>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                      {getName(cat)}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {cat.productCount} {t('common.products')}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
+                  {!cat.imageUrl && (
+                    <Typography variant="h3" sx={{ opacity: 0.3 }}>🎊</Typography>
+                  )}
+                </CardMedia>
+                <CardContent>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                    {getName(cat)}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {cat.productCount} {t('common.products')}
+                  </Typography>
+                </CardContent>
+              </Card>
             ))}
-          </Grid>
+          </Box>
         </Box>
 
         {/* Hot Products — sold more than 5 units in the last 30 days */}

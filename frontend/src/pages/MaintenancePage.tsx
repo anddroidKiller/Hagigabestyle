@@ -137,7 +137,7 @@ export default function MaintenancePage() {
           >
             <Box
               component="img"
-              src="/hero-banner.png"
+              src="/hero-banner-classic.png"
               alt={t('common.appName')}
               sx={{
                 width: '100%',
