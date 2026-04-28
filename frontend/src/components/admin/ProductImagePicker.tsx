@@ -10,6 +10,7 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import axios from 'axios';
 import { adminApi } from '../../services/api';
+import CameraCaptureDialog from './CameraCaptureDialog';
 
 type Mode = 'main' | 'gallery';
 
@@ -42,11 +43,10 @@ export default function ProductImagePicker({
 }: ProductImagePickerProps) {
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const galleryFileRef = useRef<HTMLInputElement | null>(null);
-  const galleryCameraRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
   const [showUrlField, setShowUrlField] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState<null | 'main' | 'gallery'>(null);
 
   const reportError = (msg: string) => {
     if (onError) onError(msg);
@@ -89,6 +89,16 @@ export default function ProductImagePicker({
       if (url) urls.push(url);
     }
     if (urls.length) onChangeImages([...(images || []), ...urls]);
+  };
+
+  const handleCameraCapture = async (file: File) => {
+    const url = await uploadAndReturn(file);
+    if (!url) return;
+    if (cameraOpen === 'main' && onChangeImageUrl) {
+      onChangeImageUrl(url);
+    } else if (cameraOpen === 'gallery' && onChangeImages) {
+      onChangeImages([...(images || []), url]);
+    }
   };
 
   if (mode === 'main') {
@@ -170,7 +180,7 @@ export default function ProductImagePicker({
             <Button
               variant="outlined"
               startIcon={<PhotoCameraIcon />}
-              onClick={() => cameraInputRef.current?.click()}
+              onClick={() => setCameraOpen('main')}
               disabled={uploading}
             >
               {t('admin.takePhoto')}
@@ -212,13 +222,11 @@ export default function ProductImagePicker({
           hidden
           onChange={handleMainFile}
         />
-        <input
-          ref={cameraInputRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          hidden
-          onChange={handleMainFile}
+
+        <CameraCaptureDialog
+          open={cameraOpen === 'main'}
+          onClose={() => setCameraOpen(null)}
+          onCapture={handleCameraCapture}
         />
       </Box>
     );
@@ -237,7 +245,7 @@ export default function ProductImagePicker({
             <span>
               <IconButton
                 color="primary"
-                onClick={() => galleryCameraRef.current?.click()}
+                onClick={() => setCameraOpen('gallery')}
                 disabled={uploading}
               >
                 <PhotoCameraIcon />
@@ -346,13 +354,11 @@ export default function ProductImagePicker({
         hidden
         onChange={handleGalleryFiles}
       />
-      <input
-        ref={galleryCameraRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        hidden
-        onChange={handleGalleryFiles}
+
+      <CameraCaptureDialog
+        open={cameraOpen === 'gallery'}
+        onClose={() => setCameraOpen(null)}
+        onCapture={handleCameraCapture}
       />
     </Box>
   );
