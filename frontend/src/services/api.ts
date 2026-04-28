@@ -35,6 +35,8 @@ export interface ProductDto {
   costPrice: number;
   barcode?: string;
   imageUrl?: string;
+  /** Optional gallery of additional images shown on the product detail page */
+  images?: string[];
   categoryId: number;
   categoryNameHe: string;
   categoryNameEn: string;
@@ -226,6 +228,16 @@ export const adminApi = {
   getSiteSettings: () => api.get<SiteSettingsDto>('/admin/site-settings').then(r => r.data),
   setMaintenance: (isMaintenanceMode: boolean) =>
     api.put<SiteSettingsDto>('/admin/site-settings/maintenance', { isMaintenanceMode }).then(r => r.data),
+
+  uploadImage: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api
+      .post<{ url: string }>('/admin/uploads/image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      .then(r => r.data.url);
+  },
 };
 
 export default api;

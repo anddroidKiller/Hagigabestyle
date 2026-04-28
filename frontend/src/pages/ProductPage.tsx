@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -18,6 +18,7 @@ export default function ProductPage() {
   const { getName, getDescription, getCategoryName } = useLocalized();
   const [product, setProduct] = useState<ProductDto | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeImage, setActiveImage] = useState<string | null>(null);
   const addItem = useCartStore((s) => s.addItem);
   const updateQuantity = useCartStore((s) => s.updateQuantity);
   const cartItem = useCartStore((s) =>
@@ -29,9 +30,22 @@ export default function ProductPage() {
   useEffect(() => {
     if (!id) return;
     productsApi.getById(parseInt(id))
-      .then(setProduct)
+      .then((p) => {
+        setProduct(p);
+        setActiveImage(p.imageUrl || p.images?.[0] || null);
+      })
       .finally(() => setLoading(false));
   }, [id]);
+
+  const galleryImages = useMemo(() => {
+    if (!product) return [] as string[];
+    const list: string[] = [];
+    if (product.imageUrl) list.push(product.imageUrl);
+    (product.images || []).forEach((u) => {
+      if (u && !list.includes(u)) list.push(u);
+    });
+    return list;
+  }, [product]);
 
   if (loading) {
     return (
@@ -97,15 +111,65 @@ export default function ProductPage() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundImage: product.imageUrl ? `url(${product.imageUrl})` : 'none',
+              backgroundImage: activeImage ? `url(${activeImage})` : 'none',
               backgroundSize: 'cover',
               backgroundPosition: 'center',
             }}
           >
-            {!product.imageUrl && (
+            {!activeImage && (
               <Typography variant="h1" sx={{ opacity: 0.15 }}>🎉</Typography>
             )}
           </Box>
+
+          {galleryImages.length > 1 && (
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 1,
+                mt: 1.5,
+                overflowX: 'auto',
+                pb: 1,
+                '&::-webkit-scrollbar': { height: 6 },
+                '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(0,0,0,0.2)', borderRadius: 3 },
+              }}
+            >
+              {galleryImages.map((url) => {
+                const selected = url === activeImage;
+                return (
+                  <Box
+                    key={url}
+                    onClick={() => setActiveImage(url)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') setActiveImage(url);
+                    }}
+                    sx={{
+                      flexShrink: 0,
+                      width: 72,
+                      height: 72,
+                      borderRadius: 1.5,
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                      border: (theme) =>
+                        selected
+                          ? `2px solid ${theme.palette.primary.main}`
+                          : `1px solid ${theme.palette.divider}`,
+                      opacity: selected ? 1 : 0.85,
+                      transition: 'opacity 120ms, transform 120ms',
+                      '&:hover': { opacity: 1, transform: 'translateY(-1px)' },
+                    }}
+                  >
+                    <img
+                      src={url}
+                      alt=""
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    />
+                  </Box>
+                );
+              })}
+            </Box>
+          )}
         </Grid>
 
         <Grid size={{ xs: 12, md: 6 }}>

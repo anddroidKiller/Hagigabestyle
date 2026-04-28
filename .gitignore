@@ -10,6 +10,9 @@ dist-ssr/
 # Personal HTML notes (not part of the project)
 /*.html
 
+# Uploaded product/admin images (saved at runtime)
+backend/Hagigabestyle.API/wwwroot/uploads/
+
 # .NET
 bin/
 obj/

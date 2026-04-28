@@ -153,6 +153,22 @@ app.UseSerilogRequestLogging(options =>
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
+// Serve user-uploaded files from a configurable path (e.g. Railway volume mount).
+// When UploadsPath is set, files saved by the upload endpoint live there and are
+// served at /uploads/* — surviving redeploys when the path is a persistent volume.
+var uploadsPath = builder.Configuration["UploadsPath"]
+    ?? Environment.GetEnvironmentVariable("UPLOADS_PATH");
+if (!string.IsNullOrWhiteSpace(uploadsPath))
+{
+    Directory.CreateDirectory(uploadsPath);
+    app.UseStaticFiles(new Microsoft.AspNetCore.Builder.StaticFileOptions
+    {
+        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsPath),
+        RequestPath = "/uploads"
+    });
+    Log.Information("Serving uploads from external path {Path} at /uploads", uploadsPath);
+}
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

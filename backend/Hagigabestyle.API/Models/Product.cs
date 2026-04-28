@@ -11,6 +11,8 @@ public class Product
     public decimal CostPrice { get; set; }
     public string? Barcode { get; set; }
     public string? ImageUrl { get; set; }
+    // Additional gallery images shown on the product detail page (Postgres text[]).
+    public List<string> Images { get; set; } = new();
     public int CategoryId { get; set; }
     public int StockQuantityStore { get; set; }
     public int StockQuantityWarehouse { get; set; }

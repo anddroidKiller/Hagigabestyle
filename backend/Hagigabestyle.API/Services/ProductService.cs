@@ -107,6 +107,7 @@ public class ProductService
             CostPrice = dto.CostPrice,
             Barcode = dto.Barcode,
             ImageUrl = dto.ImageUrl,
+            Images = NormalizeImages(dto.Images),
             CategoryId = dto.CategoryId,
             StockQuantityStore = dto.StockQuantityStore,
             StockQuantityWarehouse = dto.StockQuantityWarehouse,
@@ -136,6 +137,7 @@ public class ProductService
         product.CostPrice = dto.CostPrice;
         product.Barcode = dto.Barcode;
         product.ImageUrl = dto.ImageUrl;
+        product.Images = NormalizeImages(dto.Images);
         product.CategoryId = dto.CategoryId;
         product.StockQuantityStore = dto.StockQuantityStore;
         product.StockQuantityWarehouse = dto.StockQuantityWarehouse;
@@ -162,6 +164,16 @@ public class ProductService
         await _db.SaveChangesAsync();
         var sales = await GetMonthlySalesAsync(new List<int> { id });
         return MapToDto(product, sales.GetValueOrDefault(id, 0));
+    }
+
+    private static List<string> NormalizeImages(List<string>? images)
+    {
+        if (images == null || images.Count == 0) return new List<string>();
+        return images
+            .Where(u => !string.IsNullOrWhiteSpace(u))
+            .Select(u => u.Trim())
+            .Distinct()
+            .ToList();
     }
 
     public async Task<bool> DeleteAsync(int id)
@@ -191,6 +203,7 @@ public class ProductService
             CostPrice = p.CostPrice,
             Barcode = p.Barcode,
             ImageUrl = p.ImageUrl,
+            Images = p.Images?.ToList() ?? new List<string>(),
             CategoryId = p.CategoryId,
             CategoryNameHe = p.Category.NameHe,
             CategoryNameEn = p.Category.NameEn,

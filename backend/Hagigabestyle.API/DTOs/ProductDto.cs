@@ -11,6 +11,7 @@ public class ProductDto
     public decimal CostPrice { get; set; }
     public string? Barcode { get; set; }
     public string? ImageUrl { get; set; }
+    public List<string> Images { get; set; } = new();
     public int CategoryId { get; set; }
     public string CategoryNameHe { get; set; } = string.Empty;
     public string CategoryNameEn { get; set; } = string.Empty;
@@ -39,6 +40,7 @@ public class CreateProductDto
     public decimal CostPrice { get; set; }
     public string? Barcode { get; set; }
     public string? ImageUrl { get; set; }
+    public List<string>? Images { get; set; }
     public int CategoryId { get; set; }
     public int StockQuantityStore { get; set; }
     public int StockQuantityWarehouse { get; set; }
@@ -57,6 +59,7 @@ public class UpdateProductDto
     public decimal CostPrice { get; set; }
     public string? Barcode { get; set; }
     public string? ImageUrl { get; set; }
+    public List<string>? Images { get; set; }
     public int CategoryId { get; set; }
     public int StockQuantityStore { get; set; }
     public int StockQuantityWarehouse { get; set; }

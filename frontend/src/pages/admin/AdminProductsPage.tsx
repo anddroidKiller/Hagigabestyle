@@ -14,6 +14,7 @@ import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
 import { adminApi, ProductDto, CategoryDto } from "../../services/api";
 import ProductBarcodeCaptureDialog from "../../components/admin/ProductBarcodeCaptureDialog";
+import ProductImagePicker from "../../components/admin/ProductImagePicker";
 
 export default function AdminProductsPage() {
   const { t } = useTranslation();
@@ -32,7 +33,8 @@ export default function AdminProductsPage() {
   const [editing, setEditing] = useState<ProductDto | null>(null);
   const [form, setForm] = useState({
     nameHe: "", nameEn: "", descriptionHe: "", descriptionEn: "",
-    price: 0, costPrice: 0, barcode: "", imageUrl: "", categoryId: 0,
+    price: 0, costPrice: 0, barcode: "", imageUrl: "", images: [] as string[],
+    categoryId: 0,
     stockQuantityStore: 0, stockQuantityWarehouse: 0,
     locationStore: "", locationWarehouse: "",
     isActive: true,
@@ -74,6 +76,7 @@ export default function AdminProductsPage() {
         costPrice: 0,
         barcode: code,
         imageUrl: "",
+        images: [],
         categoryId: defaultCategoryId,
         stockQuantityStore: 0,
         stockQuantityWarehouse: 0,
@@ -103,7 +106,7 @@ export default function AdminProductsPage() {
     setEditing(null);
     setForm({
       nameHe: "", nameEn: "", descriptionHe: "", descriptionEn: "",
-      price: 0, costPrice: 0, barcode: "", imageUrl: "",
+      price: 0, costPrice: 0, barcode: "", imageUrl: "", images: [],
       categoryId: categories[0]?.id ?? 0,
       stockQuantityStore: 0, stockQuantityWarehouse: 0,
       locationStore: "", locationWarehouse: "",
@@ -119,6 +122,7 @@ export default function AdminProductsPage() {
       descriptionHe: p.descriptionHe || "", descriptionEn: p.descriptionEn || "",
       price: p.price, costPrice: p.costPrice || 0,
       barcode: p.barcode || "", imageUrl: p.imageUrl || "",
+      images: p.images ? [...p.images] : [],
       categoryId: p.categoryId,
       stockQuantityStore: p.stockQuantityStore || 0,
       stockQuantityWarehouse: p.stockQuantityWarehouse || 0,
@@ -404,30 +408,18 @@ export default function AdminProductsPage() {
                 focused
               />
             </Box>
-            <TextField label={t("admin.imageUrl")} fullWidth value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} />
-            {form.imageUrl && (
-              <Box sx={{ display: "flex", justifyContent: "center" }}>
-                <Box
-                  sx={{
-                    width: 160,
-                    height: 160,
-                    borderRadius: 2,
-                    overflow: "hidden",
-                    bgcolor: "background.paper",
-                    border: (theme) => `1px solid ${theme.palette.divider}`,
-                  }}
-                >
-                  <img
-                    src={form.imageUrl}
-                    alt="preview"
-                    style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).style.opacity = "0.25";
-                    }}
-                  />
-                </Box>
-              </Box>
-            )}
+            <ProductImagePicker
+              mode="main"
+              imageUrl={form.imageUrl}
+              onChangeImageUrl={(url) => setForm({ ...form, imageUrl: url })}
+              onError={(msg) => showSnack(msg, "error")}
+            />
+            <ProductImagePicker
+              mode="gallery"
+              images={form.images}
+              onChangeImages={(imgs) => setForm({ ...form, images: imgs })}
+              onError={(msg) => showSnack(msg, "error")}
+            />
             <TextField
               select label={t("product.category")} fullWidth value={form.categoryId}
               onChange={(e) => setForm({ ...form, categoryId: +e.target.value })}
