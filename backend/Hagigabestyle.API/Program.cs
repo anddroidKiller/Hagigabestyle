@@ -51,7 +51,11 @@ else
     connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
     Log.Warning("No DATABASE_URL found, falling back to appsettings (localhost)");
 }
-builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(connectionString)
+           // HasData with `new List<string>()` for the empty Images column triggers a false-positive
+           // PendingModelChangesWarning in EF Core 10. The seed values are deterministic; suppress it.
+           .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)));
 
 // JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"]!;
