@@ -13,13 +13,9 @@ import {
   useTheme,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { BarcodeDetectorPolyfill } from "barcode-detector-polyfill";
+import { BarcodeDetector } from "barcode-detector/ponyfill";
 
-if (!("BarcodeDetector" in window)) {
-  (window as any).BarcodeDetector = BarcodeDetectorPolyfill;
-}
-
-const SUPPORTED_FORMATS: string[] = ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "code_39"];
+const SUPPORTED_FORMATS = ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "code_39"];
 
 type Props = {
   open: boolean;
@@ -86,8 +82,7 @@ export default function ProductBarcodeCaptureDialog({ open, onClose, onBarcode, 
       await videoRef.current.play();
       setScanning(true);
 
-      const DetectorClass: any = (window as any).BarcodeDetector;
-      const detector = new DetectorClass({ formats: SUPPORTED_FORMATS });
+      const detector = new BarcodeDetector({ formats: SUPPORTED_FORMATS });
 
       const tick = async () => {
         if (doneRef.current || !videoRef.current || videoRef.current.readyState < 2) {
@@ -138,8 +133,7 @@ export default function ProductBarcodeCaptureDialog({ open, onClose, onBarcode, 
     setDecodeError(null);
     doneRef.current = false;
 
-    const DetectorClass: any = (window as any).BarcodeDetector;
-    const detector = new DetectorClass({ formats: SUPPORTED_FORMATS });
+    const detector = new BarcodeDetector({ formats: SUPPORTED_FORMATS });
     const url = URL.createObjectURL(file);
     try {
       const img = new Image();
