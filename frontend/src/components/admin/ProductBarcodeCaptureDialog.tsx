@@ -13,7 +13,13 @@ import {
   useTheme,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { BrowserMultiFormatReader } from "@zxing/browser";
+import { BarcodeDetectorPolyfill } from "barcode-detector-polyfill";
+
+if (!("BarcodeDetector" in window)) {
+  (window as any).BarcodeDetector = BarcodeDetectorPolyfill;
+}
+
+const SUPPORTED_FORMATS: string[] = ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "code_39"];
 
 type Props = {
   open: boolean;
@@ -27,19 +33,25 @@ export default function ProductBarcodeCaptureDialog({ open, onClose, onBarcode, 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const videoRef = useRef<HTMLVideoElement>(null);
-  const controlsRef = useRef<{ stop: () => void } | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const rafRef = useRef<number | null>(null);
   const doneRef = useRef(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
   const [decodeError, setDecodeError] = useState<string | null>(null);
 
   const stopScanner = useCallback(() => {
-    try {
-      controlsRef.current?.stop();
-    } catch {
-      /* ignore */
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
     }
-    controlsRef.current = null;
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
     setScanning(false);
   }, []);
 
@@ -65,29 +77,46 @@ export default function ProductBarcodeCaptureDialog({ open, onClose, onBarcode, 
     stopScanner();
     if (!videoRef.current) return;
 
-    const reader = new BrowserMultiFormatReader();
-    setScanning(true);
-
     try {
-      let controls: { stop: () => void };
-      controls = await reader.decodeFromVideoDevice(undefined, videoRef.current!, (result) => {
-        if (result) {
-          controls.stop();
-          handleDecoded(result.getText());
-        }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
       });
-      controlsRef.current = controls;
+      streamRef.current = stream;
+      videoRef.current.srcObject = stream;
+      await videoRef.current.play();
+      setScanning(true);
+
+      const DetectorClass: any = (window as any).BarcodeDetector;
+      const detector = new DetectorClass({ formats: SUPPORTED_FORMATS });
+
+      const tick = async () => {
+        if (doneRef.current || !videoRef.current || videoRef.current.readyState < 2) {
+          if (!doneRef.current) rafRef.current = requestAnimationFrame(tick);
+          return;
+        }
+        try {
+          const barcodes = await detector.detect(videoRef.current);
+          if (barcodes.length > 0) {
+            handleDecoded(barcodes[0].rawValue);
+            return;
+          }
+        } catch {
+          // frame not ready, retry
+        }
+        if (!doneRef.current) {
+          rafRef.current = requestAnimationFrame(tick);
+        }
+      };
+      rafRef.current = requestAnimationFrame(tick);
     } catch (e) {
       setCameraError(e instanceof Error ? e.message : String(e));
       setScanning(false);
-      controlsRef.current = null;
     }
   }, [handleDecoded, stopScanner]);
 
   useEffect(() => {
     if (open) {
       doneRef.current = false;
-      // Small delay lets the dialog mount <video> into the DOM before camera init.
       const timer = window.setTimeout(() => {
         startCamera();
       }, 150);
@@ -108,12 +137,24 @@ export default function ProductBarcodeCaptureDialog({ open, onClose, onBarcode, 
 
     setDecodeError(null);
     doneRef.current = false;
-    const reader = new BrowserMultiFormatReader();
+
+    const DetectorClass: any = (window as any).BarcodeDetector;
+    const detector = new DetectorClass({ formats: SUPPORTED_FORMATS });
     const url = URL.createObjectURL(file);
     try {
-      const result = await reader.decodeFromImageUrl(url);
-      stopScanner();
-      handleDecoded(result.getText());
+      const img = new Image();
+      img.src = url;
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error("Failed to load image"));
+      });
+      const barcodes = await detector.detect(img);
+      if (barcodes.length > 0) {
+        stopScanner();
+        handleDecoded(barcodes[0].rawValue);
+      } else {
+        setDecodeError(t("admin.barcodeNotInImage"));
+      }
     } catch {
       setDecodeError(t("admin.barcodeNotInImage"));
     } finally {
