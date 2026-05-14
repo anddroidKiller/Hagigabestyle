@@ -74,11 +74,18 @@ export default function ProductAddWizardDialog({ open, barcode, defaultCategoryI
 
   useEffect(() => {
     if (open && step === "quantity") {
-      const timer = setTimeout(() => {
-        storeQtyRef.current?.focus();
-        storeQtyRef.current?.select();
-      }, 200);
-      return () => clearTimeout(timer);
+      // iOS requires focus to happen after the dialog transition completes.
+      // Multiple attempts with increasing delays ensure the keyboard opens reliably.
+      const timers = [300, 500].map((ms) =>
+        setTimeout(() => {
+          const el = storeQtyRef.current;
+          if (!el) return;
+          el.focus();
+          el.click();
+          el.setSelectionRange(0, el.value.length);
+        }, ms)
+      );
+      return () => timers.forEach(clearTimeout);
     }
   }, [open, step]);
 
@@ -245,6 +252,7 @@ export default function ProductAddWizardDialog({ open, barcode, defaultCategoryI
               label={t("admin.stockStore")}
               type="number"
               fullWidth
+              autoFocus
               value={storeQty}
               onChange={(e) => setStoreQty(Math.max(0, +e.target.value))}
               slotProps={{
