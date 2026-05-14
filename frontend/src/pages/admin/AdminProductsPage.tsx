@@ -5,7 +5,7 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField,
   FormControlLabel, Switch, MenuItem, Chip,
-  Backdrop, CircularProgress, Alert, Snackbar,
+  Alert, Snackbar,
   useMediaQuery, useTheme,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
@@ -14,6 +14,7 @@ import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
 import { adminApi, ProductDto, CategoryDto } from "../../services/api";
 import ProductBarcodeCaptureDialog from "../../components/admin/ProductBarcodeCaptureDialog";
+import ProductAddWizardDialog from "../../components/admin/ProductAddWizardDialog";
 import ProductImagePicker from "../../components/admin/ProductImagePicker";
 
 export default function AdminProductsPage() {
@@ -23,7 +24,8 @@ export default function AdminProductsPage() {
   const [products, setProducts] = useState<ProductDto[]>([]);
   const [categories, setCategories] = useState<CategoryDto[]>([]);
   const [captureOpen, setCaptureOpen] = useState(false);
-  const [creating, setCreating] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [wizardBarcode, setWizardBarcode] = useState("");
   const [snackbar, setSnackbar] = useState<{ open: boolean; msg: string; severity: "success" | "error" | "info" }>({
     open: false, msg: "", severity: "success",
   });
@@ -62,43 +64,16 @@ export default function AdminProductsPage() {
     setCaptureOpen(true);
   };
 
-  const createProductFromBarcode = async (code: string) => {
+  const onBarcodeScanned = (code: string) => {
     setCaptureOpen(false);
-    setCreating(true);
-    try {
-      const defaultCategoryId = categories[0]?.id ?? 0;
-      await adminApi.createProduct({
-        nameHe: "",
-        nameEn: "",
-        descriptionHe: "",
-        descriptionEn: "",
-        price: 0,
-        costPrice: 0,
-        barcode: code,
-        imageUrl: "",
-        images: [],
-        categoryId: defaultCategoryId,
-        stockQuantityStore: 0,
-        stockQuantityWarehouse: 0,
-        locationStore: "",
-        locationWarehouse: "",
-        isActive: true,
-      });
-      showSnack(`המוצר נוסף עם ברקוד ${code}`, "success");
-      loadData();
-    } catch (e) {
-      let msg = "שגיאה בהוספת המוצר.";
-      if (axios.isAxiosError(e)) {
-        const status = e.response?.status;
-        if (status === 401) msg = "ההתחברות פגה או שאין הרשאה. התחבר שוב לממשק המנהל ונסה שוב.";
-        else if (e.message) msg = e.message;
-      } else if (e instanceof Error) {
-        msg = e.message;
-      }
-      showSnack(msg, "error");
-    } finally {
-      setCreating(false);
-    }
+    setWizardBarcode(code);
+    setWizardOpen(true);
+  };
+
+  const onWizardDone = () => {
+    setWizardOpen(false);
+    showSnack(`המוצר נוסף עם ברקוד ${wizardBarcode}`, "success");
+    loadData();
   };
 
   const openManualForm = () => {
@@ -170,15 +145,21 @@ export default function AdminProductsPage() {
 
   return (
     <>
-      <Backdrop sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.modal + 1 }} open={creating}>
-        <CircularProgress color="inherit" />
-      </Backdrop>
 
       <ProductBarcodeCaptureDialog
         open={captureOpen}
         onClose={() => setCaptureOpen(false)}
-        onBarcode={createProductFromBarcode}
+        onBarcode={onBarcodeScanned}
         onSkip={openManualForm}
+      />
+
+      <ProductAddWizardDialog
+        open={wizardOpen}
+        barcode={wizardBarcode}
+        defaultCategoryId={categories[0]?.id ?? 0}
+        onClose={() => setWizardOpen(false)}
+        onDone={onWizardDone}
+        onError={(msg) => showSnack(msg, "error")}
       />
 
       <Snackbar
